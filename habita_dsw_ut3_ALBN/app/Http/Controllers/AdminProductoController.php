@@ -1,0 +1,130 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Categoria;
+use App\Models\Producto;
+use Illuminate\Http\Request;
+
+class AdminProductoController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        $listaProductos = Producto::all();
+        return view('productos.index', compact('listaProductos'));
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        return view('productos.create');
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'nombre' => 'required',
+            'descripcion' => 'required',
+            'precio' => 'required',
+            'stock',
+            'materiales' => 'required',
+            'dimensiones' => 'required',
+            'color_principal'=> 'required',
+            'imagen_principal',
+            'destacado' => 'required',
+            'categoria_id'=> 'required|array'
+        ]);
+
+        $producto = new Producto();
+        $producto->nombre = $request->nombre;
+        $producto->descripcion = $request->descripcion;
+        $producto->precio = $request->precio;
+        $producto->stock = $request->stock;
+        $producto->materiales = $request->materiales;
+        $producto->dimensiones = $request->dimensiones;
+        $producto->color_principal = $request->color_principal;
+        $producto->destacado = $request->destacado;
+        $producto->nombre = $request->nombre;
+        
+        $producto->save();
+        $resultado = $producto->categoria_id()->sync($request->categoria_id);
+
+        return redirect()->route('productos.index', Compact('resultado'));
+
+    }
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(int $id)
+    {
+        $producto = Producto::find($id);
+        return view('productos.show', Compact('producto'));
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(int $id)
+    {
+        $producto = Producto::find($id);
+        $listaCategorias = Categoria::all();
+        return view('productos.edit', Compact('producto'), Compact('listaCategorias'));
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, string $id)
+    {
+        $request->validate([
+            'nombre' => 'required',
+            'descripcion' => 'required',
+            'precio' => 'required',
+            'stock',
+            'materiales' => 'required',
+            'dimensiones' => 'required',
+            'color_principal'=> 'required',
+            'imagen_principal',
+            'destacado' => 'required',
+            'categoria_id'=> 'required|array'
+        ]);
+
+        $producto = new Producto();
+        $producto->nombre = $request->nombre;
+        $producto->descripcion = $request->descripcion;
+        $producto->precio = $request->precio;
+        $producto->stock = $request->stock;
+        $producto->materiales = $request->materiales;
+        $producto->dimensiones = $request->dimensiones;
+        $producto->color_principal = $request->color_principal;
+        $producto->destacado = $request->destacado;
+        $producto->nombre = $request->nombre;
+        
+        $producto->update();
+        $resultado = $producto->categoria_id()->sync($request->categoria_id);
+
+        return redirect()->route('productos.index', Compact('resultado'));
+
+    }
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(int $id)
+    {
+        $producto= Producto::find($id);
+        $producto->categoria_id()->sync([]);
+
+        $resultado = $producto->delete();
+        return redirect()->route('productos.index', Compact('resultado'));
+    }
+}
