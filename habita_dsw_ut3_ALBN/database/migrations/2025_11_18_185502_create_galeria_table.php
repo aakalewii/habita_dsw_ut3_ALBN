@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('ruta');
             $table->boolean('es_principal')->default(false);
             $table->timestamps();
-
+            $table->foreign('producto_id')->references('id')->on('productos')->onDelete('cascade');
             $table->unsignedBigInteger('producto_id')->nullable();
         });
     }

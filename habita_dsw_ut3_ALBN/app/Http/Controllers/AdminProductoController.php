@@ -57,7 +57,7 @@ class AdminProductoController extends Controller
         $producto->save();
         $resultado = $producto->categoria_id()->sync($request->categoria_id);
 
-        return redirect()->route('productos.index', Compact('resultado'));
+        return redirect()->route('productos.index', compact('resultado'));
 
     }
 
@@ -67,7 +67,7 @@ class AdminProductoController extends Controller
     public function show(int $id)
     {
         $producto = Producto::find($id);
-        return view('productos.show', Compact('producto'));
+        return view('productos.show', compact('producto'));
     }
 
     /**
@@ -77,7 +77,7 @@ class AdminProductoController extends Controller
     {
         $producto = Producto::find($id);
         $listaCategorias = Categoria::all();
-        return view('productos.edit', Compact('producto'), Compact('listaCategorias'));
+        return view('productos.edit', compact('producto'), compact('listaCategorias'));
     }
 
     /**
@@ -98,7 +98,7 @@ class AdminProductoController extends Controller
             'categoria_id'=> 'required|array'
         ]);
 
-        $producto = new Producto();
+        $producto= Producto::find($id);
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio = $request->precio;
@@ -112,7 +112,7 @@ class AdminProductoController extends Controller
         $producto->update();
         $resultado = $producto->categoria_id()->sync($request->categoria_id);
 
-        return redirect()->route('productos.index', Compact('resultado'));
+        return redirect()->route('productos.index', compact('resultado'));
 
     }
 

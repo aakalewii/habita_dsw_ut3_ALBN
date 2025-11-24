@@ -4,6 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Models\Categoria;
+use App\Models\Galeria;
 
 class Producto extends Model
 {
@@ -44,7 +49,19 @@ class Producto extends Model
     /**
      * Relación: un producto pertenece a una categoría
      */
-    public function categorias() : BelongsToMany{
+    public function categorias() : BelongsToMany
+    {
         return $this->belongsToMany(Categoria::class);
+    }
+
+
+    public function galeria()
+    {
+        return $this->hasMany(Galeria::class, 'producto_id');
+    }
+
+    public function imagenPrincipal()
+    {
+        return $this->hasOne(Galeria::class, 'producto_id')->where('es_principal', true);
     }
 }
