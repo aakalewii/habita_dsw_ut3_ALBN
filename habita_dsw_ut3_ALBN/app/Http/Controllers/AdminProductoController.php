@@ -14,7 +14,7 @@ class AdminProductoController extends Controller
     public function index()
     {
         $listaProductos = Producto::all();
-        return view('productos.index', compact('listaProductos'));
+        return view('admin.productos.index', compact('listaProductos'));
     }
 
     /**
@@ -22,7 +22,9 @@ class AdminProductoController extends Controller
      */
     public function create()
     {
-        return view('productos.create');
+        $listaCategorias = Categoria::all();
+
+        return view('admin.productos.create', compact('listaCategorias'));
     }
 
     /**
@@ -53,9 +55,9 @@ class AdminProductoController extends Controller
         $producto->color_principal = $request->color_principal;
         $producto->destacado = $request->destacado;
         $producto->nombre = $request->nombre;
-        
+
         $producto->save();
-        $resultado = $producto->categoria_id()->sync($request->categoria_id);
+        $resultado = $producto->categorias()->sync($request->categoria_id);
 
         return redirect()->route('productos.index', compact('resultado'));
 
@@ -67,7 +69,7 @@ class AdminProductoController extends Controller
     public function show(int $id)
     {
         $producto = Producto::find($id);
-        return view('productos.show', compact('producto'));
+        return view('admin.productos.show', compact('producto'));
     }
 
     /**
@@ -77,7 +79,7 @@ class AdminProductoController extends Controller
     {
         $producto = Producto::find($id);
         $listaCategorias = Categoria::all();
-        return view('productos.edit', compact('producto'), compact('listaCategorias'));
+        return view('admin.productos.edit', compact('producto'), compact('listaCategorias'));
     }
 
     /**
@@ -108,9 +110,9 @@ class AdminProductoController extends Controller
         $producto->color_principal = $request->color_principal;
         $producto->destacado = $request->destacado;
         $producto->nombre = $request->nombre;
-        
+
         $producto->update();
-        $resultado = $producto->categoria_id()->sync($request->categoria_id);
+        $resultado = $producto->categorias()->sync($request->categoria_id);
 
         return redirect()->route('productos.index', compact('resultado'));
 
@@ -122,7 +124,7 @@ class AdminProductoController extends Controller
     public function destroy(int $id)
     {
         $producto= Producto::find($id);
-        $producto->categoria_id()->sync([]);
+        $producto->categorias()->sync([]);
 
         $resultado = $producto->delete();
         return redirect()->route('productos.index', Compact('resultado'));

@@ -13,7 +13,7 @@ class AdminCategoriaController extends Controller
     public function index()
     {
         $listaCategorias = Categoria::all();
-        return view('categorias.index', compact('listaCategorias'));
+        return view('admin.categorias.index', compact('listaCategorias'));
     }
 
     /**
@@ -21,7 +21,7 @@ class AdminCategoriaController extends Controller
      */
     public function create()
     {
-        return view('categorias.create');
+        return view('admin.categorias.create');
     }
 
     /**
@@ -47,7 +47,7 @@ class AdminCategoriaController extends Controller
      */
     public function show(Categoria $categoria)
     {
-        return view('categorias.show', compact('categoria'));
+        return view('admin.categorias.show', compact('categoria'));
     }
 
     /**
@@ -55,7 +55,7 @@ class AdminCategoriaController extends Controller
      */
     public function edit(Categoria $categoria)
     {
-        return view('categorias.edit', Compact('categoria'));
+        return view('admin.categorias.edit', Compact('categoria'));
     }
 
     /**
@@ -69,7 +69,7 @@ class AdminCategoriaController extends Controller
 
         $resultado = $categoria->update();
 
-        return redirect()->route('permisos.index', Compact('resultado'));
+        return redirect()->route('categorias.index', Compact('resultado'));
     }
 
     /**
