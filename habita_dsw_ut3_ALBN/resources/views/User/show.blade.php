@@ -1,7 +1,7 @@
-@include('layouts.header')
+@include('layoutsUsuario.header')
 
 <body>
-    @include('layouts.menu')
+    @include('layoutsUsuario.menu')
 
     <div class="container mt-4">
         <h1>Producto: {{ $producto->nombre }}</h1>
@@ -63,10 +63,10 @@
 
             <!-- Botón Volver -->
             <div class="mt-4">
-                <a href="{{ route('productos.index') }}" class="btn btn-primary">Volver</a>
+                <a href="{{ route('productos.galeria') }}" class="btn btn-primary">Volver</a>
             </div>
         </form>
     </div>
 
-    @include('layouts.footer')
+    @include('layoutsUsuario.footer')
 </body>

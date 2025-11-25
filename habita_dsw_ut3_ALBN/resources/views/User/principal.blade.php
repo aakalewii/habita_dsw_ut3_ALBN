@@ -21,7 +21,8 @@
                                     <span class="badge bg-secondary">{{ $categoria->nombre }}</span>
                                 @endforeach
                             </div>
-                            <a href="#" class="btn btn-primary mt-3">Ver Producto</a>
+                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-primary mt-3">Ver Producto</a>
+                            <a href="#" class="btn btn-primary mt-3">Agregar al Carrito</a>
                         </div>
                     </div>
                 </div>

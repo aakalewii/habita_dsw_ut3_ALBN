@@ -8,6 +8,8 @@ use App\Http\Controllers\AdminProductoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
+Route::get('/catalogo/{producto}', [ProductoController::class, 'show'])
+    ->name('user.productos.show');
 
 Route::resource('categorias', AdminCategoriaController::class);
 

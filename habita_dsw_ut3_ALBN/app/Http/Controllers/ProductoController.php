@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Str;
 use App\Models\Producto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
@@ -45,6 +45,11 @@ class ProductoController extends Controller
         $listaProductos = $query->paginate(12);
         $categorias = Categoria::all();
 
-        return view('principal', compact('listaProductos', 'categorias'));
+        return view('User/principal', compact('listaProductos', 'categorias'));
     }
+
+    public function show(Producto $producto)
+{
+    return view('User.show', compact('producto'));
+}
 }
