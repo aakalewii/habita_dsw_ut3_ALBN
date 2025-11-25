@@ -7,11 +7,7 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\AdminProductoController;
 use Illuminate\Support\Facades\Route;
 
-Route::resource('productos', ProductoController::class);
-
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
 
 Route::resource('categorias', AdminCategoriaController::class);
 

@@ -11,7 +11,7 @@ class ProductoController extends Controller
     public function galeria(Request $request)
     {
         // Trae los productos y las categorías en una única consulta
-        $query = Producto::with('categoria');
+        $query = Producto::with('categorias');
 
         // Búsqueda por nombre
         // filled('buscar') verifica si el campo de búsqueda no está vacío.
@@ -42,9 +42,9 @@ class ProductoController extends Controller
 
         // Ejecuta la consulta final con todos los filtros aplicados.
         // Divide el resultado en páginas de 12 productos por página.
-        $productos = $query->paginate(12);
+        $listaProductos = $query->paginate(12);
         $categorias = Categoria::all();
 
-        return view('productos.galeria', compact('productos', 'categorias'));
+        return view('principal', compact('listaProductos', 'categorias'));
     }
 }
