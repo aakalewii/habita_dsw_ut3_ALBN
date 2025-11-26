@@ -53,7 +53,7 @@
 
                 <div class="form-group col-md-6">
                     <label for="color_principal">Color:</label>
-                    <input type="text" class="form-control" id="color" name="color" value="{{ $producto->color }}" readonly>
+                    <input type="text" class="form-control" id="color" name="color" value="{{ $producto->color_principal }}" readonly>
                 </div>
 
                 <div class="form-group col-md-6">
