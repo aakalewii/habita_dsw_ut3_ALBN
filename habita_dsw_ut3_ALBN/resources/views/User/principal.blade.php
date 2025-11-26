@@ -27,7 +27,7 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
+            </div>         
         </form>
 
         {{-- Galería --}}
@@ -37,14 +37,21 @@
                     <div class="card h-100 shadow-sm border-0">
 
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
-                            <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                             @if(!empty($producto->imagen_principal))
+                                <img src="{{ Storage::url($producto->imagen_principal) }}"
+                                    alt="Imagen de {{ $producto->nombre }}"
+                                    class="img-fluid h-100 w-100"
+                                    style="object-fit: cover;">
+                            @else
+                                <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
+                            @endif
                         </div>
 
 
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-primary">{{ $producto->nombre }}</h5>
                             <p class="card-text text-muted mb-1">{{ Str::limit($producto->descripcion, 60) }}</p>
-                            <p class="fw-bold text-success mt-auto">{{ $producto->precioFormateado }}</p>
+                            <p class="fw-bold text-success mt-auto">{{ $producto->precio }} €</p>
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">

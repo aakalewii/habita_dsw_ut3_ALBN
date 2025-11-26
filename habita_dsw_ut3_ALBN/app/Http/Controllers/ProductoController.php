@@ -36,8 +36,8 @@ class ProductoController extends Controller
         }
 
         //Filtro por color
-        if ($request->filled('color_principal')) {
-            $query->where('colo_principal', $request->color_principal);
+        if ($request->filled('buscar')) {
+            $query->where('color_principal', $request->color_principal);
         }
 
         // Ejecuta la consulta final con todos los filtros aplicados.

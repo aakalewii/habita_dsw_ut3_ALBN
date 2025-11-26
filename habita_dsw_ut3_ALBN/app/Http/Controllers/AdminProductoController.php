@@ -40,7 +40,7 @@ class AdminProductoController extends Controller
             'materiales' => 'required',
             'dimensiones' => 'required',
             'color_principal'=> 'required',
-            'imagen_principal',
+            'imagen_principal'=> 'nullable|image|max:2048',
             'destacado' => 'required',
             'categoria_id'=> 'required|array'
         ]);
@@ -53,8 +53,13 @@ class AdminProductoController extends Controller
         $producto->materiales = $request->materiales;
         $producto->dimensiones = $request->dimensiones;
         $producto->color_principal = $request->color_principal;
+        $producto->imagen_principal = $request->imagen_principal;
         $producto->destacado = $request->destacado;
         $producto->nombre = $request->nombre;
+
+        if ($request->hasFile('imagen_principal')) {
+            $producto['imagen_principal'] = $request->file('imagen_principal')->store('productos', 'public');
+        }
 
         $producto->save();
         $resultado = $producto->categorias()->sync($request->categoria_id);
@@ -95,7 +100,7 @@ class AdminProductoController extends Controller
             'materiales' => 'required',
             'dimensiones' => 'required',
             'color_principal'=> 'required',
-            'imagen_principal',
+            'imagen_principal'=> 'nullable|image|max:2048',
             'destacado' => 'required',
             'categoria_id'=> 'required|array'
         ]);
@@ -108,8 +113,13 @@ class AdminProductoController extends Controller
         $producto->materiales = $request->materiales;
         $producto->dimensiones = $request->dimensiones;
         $producto->color_principal = $request->color_principal;
+        $producto->imagen_principal = $request->imagen_principal;
         $producto->destacado = $request->destacado;
         $producto->nombre = $request->nombre;
+
+        if ($request->hasFile('imagen_principal')) {
+            $producto['imagen_principal'] = $request->file('imagen_principal')->store('productos', 'public');
+        }
 
         $producto->update();
         $resultado = $producto->categorias()->sync($request->categoria_id);

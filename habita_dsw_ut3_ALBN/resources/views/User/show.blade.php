@@ -57,6 +57,15 @@
                 </div>
 
                 <div class="form-group col-md-6">
+                    <label class="form-label">Imagen</label>
+                    @if(!empty($producto->imagen_principal))
+                        <img src="{{ Storage::url($producto->imagen_principal) }}" width="200" class="mt-2" alt="Imagen de {{ $producto->nombre }}">
+                    @else
+                        <p class="text-muted">Sin imagen</p>
+                    @endif
+                </div>
+
+                <div class="form-group col-md-6">
                     <label for="destacado">Descatado:</label>
                     <input type="text" class="form-control" id="destacado" name="destacado" value="{{ $producto->destacado }}" readonly>
                 </div>
