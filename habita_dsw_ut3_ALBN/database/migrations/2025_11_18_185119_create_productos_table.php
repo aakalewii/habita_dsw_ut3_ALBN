@@ -18,9 +18,6 @@ return new class extends Migration {
             $table->string('color_principal');
             $table->string('imagen_principal')->nullable();
             $table->boolean('destacado')->default(false);
-
-            $table->foreignId(column: 'categoria_id')->nullable()->constrained(table: 'categorias')->nullOnDelete();
-
             $table->timestamps();
 
         });
