@@ -27,6 +27,18 @@
                         @endforeach
                     </select>
                 </div>
+            </div>
+            <div class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <select name="color_principal" class="form-select" onchange="this.form.submit()">
+                        <option value="">Color</option>
+                        @foreach ($colores as $color)
+                            <option value="{{ $color }}" @selected(request('color_principal') === $color)>
+                                {{ $color }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
             </div>         
         </form>
 

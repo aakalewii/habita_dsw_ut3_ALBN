@@ -21,7 +21,7 @@ class ProductoController extends Controller
         }
 
         //Busqueda por descripcion
-        if ($request->filled('buscar')) {
+        if ($request->filled('descripcion')) {
             $query->where('descripcion', 'like', '%' . $request->descripcion . '%');
         }
 
@@ -32,11 +32,13 @@ class ProductoController extends Controller
         // Si el usuario selecciona una categoría, se añade un filtro a la consulta.
         // Solo se mostrarán los productos que pertenezcan a esa categoría.
         if ($request->filled('categoria_id')) {
-            $query->where('categoria_id', $request->categoria_id);
+            $query->whereHas('categorias', function ($categoriaQuery) use ($request) {
+                $categoriaQuery->where('categorias.id', $request->categoria_id);
+            });
         }
 
         //Filtro por color
-        if ($request->filled('buscar')) {
+        if ($request->filled('color_principal')) {
             $query->where('color_principal', $request->color_principal);
         }
 
@@ -44,8 +46,14 @@ class ProductoController extends Controller
         // Divide el resultado en páginas de 12 productos por página.
         $listaProductos = $query->paginate(12);
         $categorias = Categoria::all();
+        $colores = Producto::query()
+            ->whereNotNull('color_principal')
+            ->select('color_principal')
+            ->distinct()
+            ->orderBy('color_principal')
+            ->pluck('color_principal');
 
-        return view('User/principal', compact('listaProductos', 'categorias'));
+        return view('User/principal', compact('listaProductos', 'categorias', 'colores'));
     }
 
     public function show(Producto $producto)
