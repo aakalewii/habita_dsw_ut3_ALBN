@@ -13,16 +13,12 @@ class ProductoController extends Controller
         // Trae los productos y las categorías en una única consulta
         $query = Producto::with('categorias');
 
-        // Búsqueda por nombre
-        // filled('buscar') verifica si el campo de búsqueda no está vacío.
-        // where('nombre', 'like', '%texto%') Filtra productos cuyo nombre contenga el texto introducido.
+        // Búsqueda por nombre o descripción desde la misma barra
         if ($request->filled('buscar')) {
-            $query->where('nombre', 'like', '%' . $request->buscar . '%');
-        }
-
-        //Busqueda por descripcion
-        if ($request->filled('descripcion')) {
-            $query->where('descripcion', 'like', '%' . $request->descripcion . '%');
+            $query->where(function ($searchQuery) use ($request) {
+                $searchQuery->where('nombre', 'like', '%' . $request->buscar . '%')
+                    ->orWhere('descripcion', 'like', '%' . $request->buscar . '%');
+            });
         }
 
         //Rango precio
