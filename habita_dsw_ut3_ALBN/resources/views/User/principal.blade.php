@@ -11,7 +11,8 @@
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
                         {{-- Idealmente aquí iría una imagen del producto --}}
-                        {{-- <img src="{{ $producto->imagen_principal ?? 'https://via.placeholder.com/300' }}" class="card-img-top" alt="{{ $producto->nombre }}"> --}}
+                        {{-- <img src="{{ $producto->imagen_principal ?? 'https://via.placeholder.com/300' }}"
+                            class="card-img-top" alt="{{ $producto->nombre }}"> --}}
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">{{ $producto->nombre }}</h5>
                             <p class="card-text">{{ Str::limit($producto->descripcion, 100) }}</p>
@@ -21,8 +22,12 @@
                                     <span class="badge bg-secondary">{{ $categoria->nombre }}</span>
                                 @endforeach
                             </div>
-                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-primary mt-3">Ver Producto</a>
-                            <a href="#" class="btn btn-primary mt-3">Agregar al Carrito</a>
+                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-primary mt-3">Ver
+                                Producto</a>
+                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-success mt-3 w-100">Agregar al Carrito</button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -40,4 +45,3 @@
 
     @include('layoutsUsuario.footer')
 </body>
-

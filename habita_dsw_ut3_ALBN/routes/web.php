@@ -29,3 +29,14 @@ Route::middleware(['auth'])->group(function () {
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
 });
+
+// Rutas del Carrito (Públicas o Privadas según lógica, aquí públicas pero usan sesión)
+use App\Http\Controllers\CarritoController;
+
+Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
+Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
+Route::put('/carrito/update/{item}', [CarritoController::class, 'update'])->name('carrito.update');
+Route::delete('/carrito/remove/{item}', [CarritoController::class, 'remove'])->name('carrito.remove');
+Route::post('/carrito/clear', [CarritoController::class, 'clear'])->name('carrito.clear');
+Route::post('/carrito/comprar', [CarritoController::class, 'comprar'])->name('carrito.comprar');
+
