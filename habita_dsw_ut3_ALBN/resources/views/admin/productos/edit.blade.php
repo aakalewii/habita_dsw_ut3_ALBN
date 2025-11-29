@@ -6,7 +6,7 @@
         <h1 class="mb-4">Editar Producto: {{ $producto->nombre }}</h1>
 
         <!-- Formulario para editar el rol -->
-        <form action="{{ route('productos.update', $producto->id) }}" method="POST">
+        <form action="{{ route('productos.update', $producto->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -58,6 +58,19 @@
                 <div class="form-group col-md-6">
                     <label for="color_principal">Color:</label>
                     <input type="text" class="form-control" id="color_principal" name="color_principal" value="{{ $producto->color_principal }}">
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label class="form-label">Imagen</label>
+                    <input type="file" name="imagen_principal" class="form-control">
+                    @if (!empty($producto->imagen_principal))
+                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
+                    @endif
+
+                    <!-- mensajes de error con plantillas BLADE -->
+                    @error('imagen_principal')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
                 </div>
 
                 <div class="form-group col-md-6">

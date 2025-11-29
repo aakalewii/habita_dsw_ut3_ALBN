@@ -53,7 +53,15 @@
 
                 <div class="form-group col-md-6">
                     <label for="color_principal">Color:</label>
-                    <input type="text" class="form-control" id="color" name="color" value="{{ $producto->color }}" readonly>
+                    <input type="text" class="form-control" id="color" name="color" value="{{ $producto->color_principal }}" readonly>
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label class="form-label">Imagen</label>
+                    <input type="file" name="imagen_principal" class="form-control">
+                    @if (!empty($producto->imagen_principal))
+                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
+                    @endif
                 </div>
 
                 <div class="form-group col-md-6">
