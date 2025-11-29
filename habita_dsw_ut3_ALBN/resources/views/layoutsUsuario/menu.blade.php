@@ -26,14 +26,14 @@
                 </li>
                 <!-- Opción Registrar -->
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="#">
+                    <a class="nav-link text-white" href="{{ route('register') }}">
                         <i class="bi bi-people-fill"></i> Registrarse
                     </a>
                 </li>
 
                 <!-- Opción Login -->
                 <li class="nav-item">
-                    <a class="nav-link text-white" href="#">
+                    <a class="nav-link text-white" href="{{ route('login') }}">
                         <i class="bi bi-shield-lock-fill"></i> Login
                     </a>
                 </li>
