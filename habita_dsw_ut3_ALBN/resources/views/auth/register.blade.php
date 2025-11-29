@@ -8,9 +8,17 @@
             <form method="POST" action="{{ route('register.post') }}">
                 @csrf
                 <div class="mb-3">
-                    <label class="form-label">Nombre completo</label>
+                    <label class="form-label">Nombre</label>
                     <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
                     @error('name')
+                        <span class="text-danger small">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Apellidos</label>
+                    <input type="text" name="apellidos" class="form-control" value="{{ old('apellidos') }}" required>
+                    @error('apellidos')
                         <span class="text-danger small">{{ $message }}</span>
                     @enderror
                 </div>

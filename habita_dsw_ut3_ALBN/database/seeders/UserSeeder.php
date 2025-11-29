@@ -23,40 +23,45 @@ class UserSeeder extends Seeder
         // Crear usuario Administrador
         User::create([
             'name' => 'Administrador',
-            'email' => 'admin@habita.com',
-            'password' => Hash::make('admin123'),
+            'apellidos' => 'Sistema',
+            'email' => 'admin@gmail.com',
+            'password' => Hash::make('123456'),
             'role_id' => $adminRole->id,
         ]);
 
         // Crear usuario Gestor 1
         User::create([
-            'name' => 'Juan Gestor',
-            'email' => 'gestor1@habita.com',
-            'password' => Hash::make('gestor123'),
+            'name' => 'Lenny',
+            'apellidos' => 'Moran',
+            'email' => 'lenny@gmail.com',
+            'password' => Hash::make('123456'),
             'role_id' => $gestorRole->id,
         ]);
 
         // Crear usuario Gestor 2
         User::create([
-            'name' => 'María Gestora',
-            'email' => 'gestor2@habita.com',
-            'password' => Hash::make('gestor123'),
+            'name' => 'Alvaro',
+            'apellidos' => 'Apellido',
+            'email' => 'alvaro@gmail.com',
+            'password' => Hash::make('123456'),
             'role_id' => $gestorRole->id,
         ]);
 
         // Crear usuario Cliente 1
         User::create([
-            'name' => 'Carlos Cliente',
-            'email' => 'cliente1@habita.com',
-            'password' => Hash::make('cliente123'),
+            'name' => 'Barry',
+            'apellidos' => 'Apellido',
+            'email' => 'barry@gmail.com',
+            'password' => Hash::make('123456'),
             'role_id' => $clienteRole->id,
         ]);
 
         // Crear usuario Cliente 2
         User::create([
-            'name' => 'Ana Cliente',
-            'email' => 'cliente2@habita.com',
-            'password' => Hash::make('cliente123'),
+            'name' => 'cliente2',
+            'apellidos' => 'cliente2',
+            'email' => 'cliente2@gmail.com',
+            'password' => Hash::make('123456'),
             'role_id' => $clienteRole->id,
         ]);
     }

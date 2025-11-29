@@ -52,7 +52,11 @@ class AuthController extends Controller
             // Limpiar los intentos fallidos si el login es exitoso
             RateLimiter::clear($throttleKey);
 
-            Session::put('iniciosesion');
+            // Guardar datos en sesión (REQUISITO 2.3)
+            $user = Auth::user();
+            Session::put('usuario_id', $user->id);
+            Session::put('email', $user->email);
+            Session::put('sesionId', Str::uuid()->toString()); // ID único para navegador/pestaña
 
             return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . Auth::user()->name);
         }
@@ -80,6 +84,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:255',
+            'apellidos' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -90,6 +95,7 @@ class AuthController extends Controller
         // Utilizando el propio modelo que viene con Laravel por defecto.
         $user = User::create([
             'name' => $request->name,
+            'apellidos' => $request->apellidos,
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'role_id' => $rolCliente->id, // Asignar automáticamente el rol de Cliente
@@ -97,6 +103,12 @@ class AuthController extends Controller
 
         // Login de la capa Auth (Facade de Laravel).
         Auth::login($user);
+
+        // Guardar datos en sesión también en el registro
+        Session::put('usuario_id', $user->id);
+        Session::put('email', $user->email);
+        Session::put('sesionId', Str::uuid()->toString());
+
         return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
     }
 

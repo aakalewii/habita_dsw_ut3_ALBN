@@ -9,14 +9,9 @@ use App\Http\Controllers\AdminProductoController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
 
-// Login de usuario
-Route::get('/', function(){
-    if(!Auth::check()){
-        return redirect()->route('login');
-    } else {
-        return redirect()->route('productos.galeria');
-    }
-});
+// Galería de productos (acceso público sin login)
+Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
+Route::get('/catalogo/{producto}', [ProductoController::class, 'show'])->name('user.productos.show');
 
 // Login de usuario
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -26,9 +21,11 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 
-Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
-Route::get('/catalogo/{producto}', [ProductoController::class, 'show'])->name('user.productos.show');
+// Logout
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-Route::resource('categorias', AdminCategoriaController::class);
-
-Route::resource('productos', AdminProductoController::class);
+// Rutas protegidas (requieren autenticación)
+Route::middleware(['auth'])->group(function () {
+    Route::resource('categorias', AdminCategoriaController::class);
+    Route::resource('productos', AdminProductoController::class);
+});
