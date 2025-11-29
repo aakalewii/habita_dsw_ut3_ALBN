@@ -21,8 +21,15 @@ class ProductoController extends Controller
             });
         }
 
-        //Rango precio
-        
+        // Filtro por rango de precios
+        // Si el usuario especifica un precio mínimo, se añaden a la consulta los productos con precio mayor o igual.
+        if ($request->filled('precio_min')) {
+            $query->where('precio', '>=', $request->precio_min);
+        }
+        // Si el usuario especifica un precio máximo, se añaden los productos con precio menor o igual.
+        if ($request->filled('precio_max')) {
+            $query->where('precio', '<=', $request->precio_max);
+        }
 
         // Filtro por categoría
         // Si el usuario selecciona una categoría, se añade un filtro a la consulta.
