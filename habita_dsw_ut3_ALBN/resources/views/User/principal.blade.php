@@ -55,7 +55,8 @@
                     <button type="submit" class="btn btn-primary flex-grow-1 me-2">
                         <i class="bi bi-funnel-fill"></i> Aplicar Filtros
                     </button>
-                    <a href="{{ route('productos.galeria') }}" class="btn btn-outline-secondary" title="Limpiar filtros">Limpiar Filtros<i class="bi bi-x-lg"></i></a>
+                    <a href="{{ route('productos.galeria') }}" class="btn btn-outline-secondary"
+                        title="Limpiar filtros">Limpiar Filtros<i class="bi bi-x-lg"></i></a>
                 </div>
             </div>
         </form>
@@ -69,8 +70,7 @@
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
                             @if(!empty($producto->imagen_principal))
                                 <img src="{{ Storage::url($producto->imagen_principal) }}"
-                                    alt="Imagen de {{ $producto->nombre }}"
-                                    class="img-fluid h-100 w-100"
+                                    alt="Imagen de {{ $producto->nombre }}" class="img-fluid h-100 w-100"
                                     style="object-fit: cover;">
                             @else
                                 <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
@@ -78,30 +78,6 @@
                         </div>
 
 
-<<<<<<< HEAD
-        <div class="row">
-            @forelse ($listaProductos as $producto)
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        {{-- Idealmente aquí iría una imagen del producto --}}
-                        {{-- <img src="{{ $producto->imagen_principal ?? 'https://via.placeholder.com/300' }}"
-                            class="card-img-top" alt="{{ $producto->nombre }}"> --}}
-                        <div class="card-body d-flex flex-column">
-                            <h5 class="card-title">{{ $producto->nombre }}</h5>
-                            <p class="card-text">{{ Str::limit($producto->descripcion, 100) }}</p>
-                            <p class="card-text"><strong>Precio:</strong> {{ number_format($producto->precio, 2) }} €</p>
-                            <div class="mt-auto">
-                                @foreach ($producto->categorias as $categoria)
-                                    <span class="badge bg-secondary">{{ $categoria->nombre }}</span>
-                                @endforeach
-                            </div>
-                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-primary mt-3">Ver
-                                Producto</a>
-                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-success mt-3 w-100">Agregar al Carrito</button>
-                            </form>
-=======
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-primary">{{ $producto->nombre }}</h5>
                             <p class="card-text text-muted mb-1">{{ Str::limit($producto->descripcion, 60) }}</p>
@@ -109,13 +85,16 @@
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
-                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{{ route('user.productos.show', $producto) }}"
+                                class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i> Ver
                             </a>
-                            <a href="#" class="btn btn-sm btn-primary">
-                                <i class="bi bi-cart-plus"></i> Añadir
-                            </a>
->>>>>>> fa9b8461e32e7d80a5281a6f2b45779534c4f174
+                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-cart-plus"></i> Añadir
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -133,8 +112,4 @@
 
     </div>
     @include('layoutsUsuario.footer')
-<<<<<<< HEAD
 </body>
-=======
-</body>
->>>>>>> fa9b8461e32e7d80a5281a6f2b45779534c4f174
