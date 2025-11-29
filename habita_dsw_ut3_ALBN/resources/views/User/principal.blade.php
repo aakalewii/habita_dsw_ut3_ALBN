@@ -3,22 +3,22 @@
 <body>
     @include('layoutsUsuario.menu')
     <div class="container mt-4">
-
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2><i class="bi bi-grid"></i> Galería de Productos</h2>
-
-            <form class="d-flex" action="{{ route('productos.galeria') }}" method="GET">
-                <input type="text" name="buscar" class="form-control me-2" placeholder="Buscar producto..."
-                    value="{{ request('buscar') }}">
-                <button class="btn btn-outline-primary" type="submit">Buscar<i class="bi bi-search"></i></button>
-            </form>
-        </div>
+        <h2><i class="bi bi-grid"></i> Galería de Productos</h2>
 
         {{-- Filtros por categoría --}}
-        <form class="mb-4" action="{{ route('productos.galeria') }}" method="GET">
+        {{-- Unificamos TODOS los filtros y la búsqueda en un solo formulario --}}
+        <form id="filtros-form" class="mb-4" action="{{ route('productos.galeria') }}" method="GET">
             <div class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <select name="categoria_id" class="form-select" onchange="this.form.submit()">
+                {{-- Búsqueda por texto --}}
+                <div class="col-md-3">
+                    <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..."
+                        value="{{ request('buscar') }}">
+                </div>
+
+                {{-- Filtro por Categoría --}}
+                <div class="col-md-2">
+                    {{-- Eliminamos el onchange="this.form.submit()" para usar el botón --}}
+                    <select name="categoria_id" class="form-select">
                         <option value="">Todas las categorías</option>
                         @foreach ($categorias as $categoria)
                             <option value="{{ $categoria->id }}" @selected(request('categoria_id') == $categoria->id)>
@@ -27,10 +27,9 @@
                         @endforeach
                     </select>
                 </div>
-            </div>
-            <div class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <select name="color_principal" class="form-select" onchange="this.form.submit()">
+                {{-- Filtro por Color --}}
+                <div class="col-md-2">
+                    <select name="color_principal" class="form-select">
                         <option value="">Color</option>
                         @foreach ($colores as $color)
                             <option value="{{ $color }}" @selected(request('color_principal') === $color)>
@@ -39,7 +38,26 @@
                         @endforeach
                     </select>
                 </div>
-            </div>         
+                {{-- Filtros de precio --}}
+                <div class="col-md-2">
+                    <label for="precio_min" class="visually-hidden">Precio Mínimo</label>
+                    <input type="number" name="precio_min" id="precio_min" class="form-control"
+                        placeholder="Precio Mín." step="0.01" value="{{ request('precio_min') }}">
+                </div>
+                <div class="col-md-2">
+                    <label for="precio_max" class="visually-hidden">Precio Máximo</label>
+                    <input type="number" name="precio_max" id="precio_max" class="form-control"
+                        placeholder="Precio Máx." step="0.01" value="{{ request('precio_max') }}">
+                </div>
+
+                {{-- Botones de acción --}}
+                <div class="col-md-3 d-flex">
+                    <button type="submit" class="btn btn-primary flex-grow-1 me-2">
+                        <i class="bi bi-funnel-fill"></i> Aplicar Filtros
+                    </button>
+                    <a href="{{ route('productos.galeria') }}" class="btn btn-outline-secondary" title="Limpiar filtros">Limpiar Filtros<i class="bi bi-x-lg"></i></a>
+                </div>
+            </div>
         </form>
 
         {{-- Galería --}}
@@ -49,7 +67,7 @@
                     <div class="card h-100 shadow-sm border-0">
 
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
-                             @if(!empty($producto->imagen_principal))
+                            @if(!empty($producto->imagen_principal))
                                 <img src="{{ Storage::url($producto->imagen_principal) }}"
                                     alt="Imagen de {{ $producto->nombre }}"
                                     class="img-fluid h-100 w-100"
