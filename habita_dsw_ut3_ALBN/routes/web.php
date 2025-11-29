@@ -26,6 +26,16 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
+    Route::get('/admin', function () {
+        $user = Auth::user();
+
+        if (!$user || $user->role?->nombre !== 'Administrador') {
+            abort(403);
+        }
+
+        return view('admin.dashboard');
+    })->name('admin.dashboard');
+
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
 });

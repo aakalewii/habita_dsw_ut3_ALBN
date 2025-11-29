@@ -4,14 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminCategoriaController extends Controller
 {
+    private function ensureAdmin(): void
+    {
+        if (!Auth::check() || Auth::user()->role?->nombre !== 'Administrador') {
+            abort(403);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $this->ensureAdmin();
         $listaCategorias = Categoria::all();
         return view('admin.categorias.index', compact('listaCategorias'));
     }
@@ -21,6 +30,7 @@ class AdminCategoriaController extends Controller
      */
     public function create()
     {
+        $this->ensureAdmin();
         return view('admin.categorias.create');
     }
 
@@ -29,6 +39,7 @@ class AdminCategoriaController extends Controller
      */
     public function store(Request $request)
     {
+        $this->ensureAdmin();
         $request->validate([
             'nombre' => 'required',
             'descripcion' => 'required',
@@ -47,6 +58,7 @@ class AdminCategoriaController extends Controller
      */
     public function show(Categoria $categoria)
     {
+        $this->ensureAdmin();
         return view('admin.categorias.show', compact('categoria'));
     }
 
@@ -55,6 +67,7 @@ class AdminCategoriaController extends Controller
      */
     public function edit(Categoria $categoria)
     {
+        $this->ensureAdmin();
         return view('admin.categorias.edit', Compact('categoria'));
     }
 
@@ -63,6 +76,7 @@ class AdminCategoriaController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->ensureAdmin();
         $categoria = Categoria::find($id);
         $categoria->nombre = $request->nombre;
         $categoria->descripcion = $request->descripcion;
@@ -77,6 +91,7 @@ class AdminCategoriaController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->ensureAdmin();
         $categoria = Categoria::find($id);
         $resultado = $categoria->delete();
         return redirect()->route('categorias.index', Compact('resultado'));
