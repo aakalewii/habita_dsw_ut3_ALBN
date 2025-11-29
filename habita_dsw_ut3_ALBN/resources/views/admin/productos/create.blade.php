@@ -7,7 +7,7 @@
         <h1 class="mb-4">Crear Rol</h1>
 
         <!-- Formulario para crear un nuevo rol -->
-        <form action="{{ route('productos.store') }}" method="POST">
+        <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('POST')
 
@@ -92,6 +92,19 @@
 
                     <!-- mensajes de error con plantillas BLADE -->
                     @error('color_principal')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                </div>
+
+                <div class="form-group col-md-6">
+                    <label class="form-label">Imagen</label>
+                    <input type="file" name="imagen_principal" class="form-control">
+                    @if (!empty($producto->imagen_principal))
+                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
+                    @endif
+
+                    <!-- mensajes de error con plantillas BLADE -->
+                    @error('imagen_principal')
                         <small class="text-danger">{{ $message }}</small>
                     @enderror
                 </div>

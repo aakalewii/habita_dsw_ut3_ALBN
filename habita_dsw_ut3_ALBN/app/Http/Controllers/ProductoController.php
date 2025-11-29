@@ -13,16 +13,12 @@ class ProductoController extends Controller
         // Trae los productos y las categorías en una única consulta
         $query = Producto::with('categorias');
 
-        // Búsqueda por nombre
-        // filled('buscar') verifica si el campo de búsqueda no está vacío.
-        // where('nombre', 'like', '%texto%') Filtra productos cuyo nombre contenga el texto introducido.
+        // Búsqueda por nombre o descripción desde la misma barra
         if ($request->filled('buscar')) {
-            $query->where('nombre', 'like', '%' . $request->buscar . '%');
-        }
-
-        //Busqueda por descripcion
-        if ($request->filled('buscar')) {
-            $query->where('descripcion', 'like', '%' . $request->descripcion . '%');
+            $query->where(function ($searchQuery) use ($request) {
+                $searchQuery->where('nombre', 'like', '%' . $request->buscar . '%')
+                    ->orWhere('descripcion', 'like', '%' . $request->buscar . '%');
+            });
         }
 
         //Rango precio
@@ -32,20 +28,28 @@ class ProductoController extends Controller
         // Si el usuario selecciona una categoría, se añade un filtro a la consulta.
         // Solo se mostrarán los productos que pertenezcan a esa categoría.
         if ($request->filled('categoria_id')) {
-            $query->where('categoria_id', $request->categoria_id);
+            $query->whereHas('categorias', function ($categoriaQuery) use ($request) {
+                $categoriaQuery->where('categorias.id', $request->categoria_id);
+            });
         }
 
         //Filtro por color
         if ($request->filled('color_principal')) {
-            $query->where('colo_principal', $request->color_principal);
+            $query->where('color_principal', $request->color_principal);
         }
 
         // Ejecuta la consulta final con todos los filtros aplicados.
         // Divide el resultado en páginas de 12 productos por página.
         $listaProductos = $query->paginate(12);
         $categorias = Categoria::all();
+        $colores = Producto::query()
+            ->whereNotNull('color_principal')
+            ->select('color_principal')
+            ->distinct()
+            ->orderBy('color_principal')
+            ->pluck('color_principal');
 
-        return view('User/principal', compact('listaProductos', 'categorias'));
+        return view('User/principal', compact('listaProductos', 'categorias', 'colores'));
     }
 
     public function show(Producto $producto)
