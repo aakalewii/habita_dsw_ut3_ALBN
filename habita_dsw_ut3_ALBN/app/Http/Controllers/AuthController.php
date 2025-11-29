@@ -58,7 +58,11 @@ class AuthController extends Controller
             Session::put('email', $user->email);
             Session::put('sesionId', Str::uuid()->toString()); // ID único para navegador/pestaña
 
-            return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . Auth::user()->name);
+            if ($user->role?->nombre === 'Administrador') {
+                return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user->name);
+            }
+
+            return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . $user->name);
         }
 
         // Incrementar el contador de intentos fallidos

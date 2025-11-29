@@ -1,7 +1,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <!-- Título del Menú -->
-        <a class="navbar-brand fw-bold" href="#">Menú</a>
+        <!-- Inicio -->
+        <li class="nav-item">
+            <a class="navbar-brand fw-bold {{ request()->routeIs('admin.dashboard') }}" href="{{ route('admin.dashboard') }}">
+                <i class="bi bi-speedometer2"></i> Inicio
+            </a>
+        </li>
 
         <!-- Botón de Desplegable para Móviles -->
         <button
@@ -32,6 +36,16 @@
                     </a>
                 </li>
             </ul>
+            <div class="d-flex">
+                @auth
+                    <form action="{{ route('logout') }}" method="POST" class="mb-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+                        </button>
+                    </form>
+                @endauth
+            </div>
         </div>
     </div>
 </nav>

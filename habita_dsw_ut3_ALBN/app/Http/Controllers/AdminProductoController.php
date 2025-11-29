@@ -5,14 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\Categoria;
 use App\Models\Producto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AdminProductoController extends Controller
 {
+    private function ensureAdmin(): void
+    {
+        if (!Auth::check() || Auth::user()->role?->nombre !== 'Administrador') {
+            abort(403);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
+        $this->ensureAdmin();
         $listaProductos = Producto::all();
         return view('admin.productos.index', compact('listaProductos'));
     }
@@ -22,6 +31,7 @@ class AdminProductoController extends Controller
      */
     public function create()
     {
+        $this->ensureAdmin();
         $listaCategorias = Categoria::all();
 
         return view('admin.productos.create', compact('listaCategorias'));
@@ -32,6 +42,7 @@ class AdminProductoController extends Controller
      */
     public function store(Request $request)
     {
+        $this->ensureAdmin();
         $request->validate([
             'nombre' => 'required',
             'descripcion' => 'required',
@@ -73,6 +84,7 @@ class AdminProductoController extends Controller
      */
     public function show(int $id)
     {
+        $this->ensureAdmin();
         $producto = Producto::find($id);
         return view('admin.productos.show', compact('producto'));
     }
@@ -82,6 +94,7 @@ class AdminProductoController extends Controller
      */
     public function edit(int $id)
     {
+        $this->ensureAdmin();
         $producto = Producto::find($id);
         $listaCategorias = Categoria::all();
         return view('admin.productos.edit', compact('producto'), compact('listaCategorias'));
@@ -92,6 +105,7 @@ class AdminProductoController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->ensureAdmin();
         $request->validate([
             'nombre' => 'required',
             'descripcion' => 'required',
@@ -133,6 +147,7 @@ class AdminProductoController extends Controller
      */
     public function destroy(int $id)
     {
+        $this->ensureAdmin();
         $producto= Producto::find($id);
         $producto->categorias()->sync([]);
 
