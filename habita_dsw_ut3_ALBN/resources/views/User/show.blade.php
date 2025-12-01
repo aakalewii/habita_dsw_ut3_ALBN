@@ -20,14 +20,6 @@
                     </div>
                 </div>
 
-<<<<<<< HEAD
-                <!-- Campo Nombre -->
-                <div class="form-group col-md-6">
-                    <label for="nombre">Nombre:</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $producto->nombre }}"
-                        readonly>
-                </div>
-=======
                 <div class="col-md-7">
                     <div class="card-body h-100 d-flex flex-column">
                         <div class="d-flex align-items-start justify-content-between">
@@ -38,7 +30,6 @@
                                 <span class="badge bg-warning text-dark">Destacado</span>
                             @endif
                         </div>
->>>>>>> fa9b8461e32e7d80a5281a6f2b45779534c4f174
 
                         <p class="fs-4 fw-semibold text-success mb-3">{{ $producto->precio }} &euro;</p>
                         <p class="text-muted mb-3">{{ $producto->descripcion }}</p>
@@ -73,71 +64,22 @@
                             </div>
                         </div>
 
-                        <div class="mt-auto pt-3">
-                            <a href="{{ route('productos.galeria') }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> Volver
-                            </a>
-                            <a href="#" class="btn btn-sm btn-primary">
-                                <i class="bi bi-cart-plus"></i> Añadir al Carrito
-                            </a>
+                        <div class="mt-4 d-flex gap-2">
+                            <a href="{{ route('productos.galeria') }}" class="btn btn-secondary">Volver</a>
+
+                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST">
+                                @csrf
+                                <div class="input-group" style="width: 200px;">
+                                    <input type="number" name="cantidad" value="1" min="1" max="{{ $producto->stock }}"
+                                        class="form-control">
+                                    <button type="submit" class="btn btn-success">Agregar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
-<<<<<<< HEAD
-
-            <div class="form-group col-md-6">
-                <label for="descripcion">Descripción:</label>
-                <input type="text" class="form-control" id="descripcion" name="descripcion"
-                    value="{{ $producto->descripcion }}" readonly>
-            </div>
-
-            <div class="form-group col-md-6">
-                <label for="precio">Precio:</label>
-                <input type="number" class="form-control" id="precio" name="precio" value="{{ $producto->precio }}"
-                    readonly>
-            </div>
-
-            <div class="form-group col-md-6">
-                <label for="stock">Stock:</label>
-                <input type="number" class="form-control" id="stock" name="stock" value="{{ $producto->stock }}"
-                    readonly>
-            </div>
-
-            <div class="form-group col-md-6">
-                <label for="dimensiones">Dimensiones:</label>
-                <input type="text" class="form-control" id="dimensiones" name="dimensiones"
-                    value="{{ $producto->dimensiones }}" readonly>
-            </div>
-
-            <div class="form-group col-md-6">
-                <label for="color_principal">Color:</label>
-                <input type="text" class="form-control" id="color" name="color" value="{{ $producto->color }}" readonly>
-            </div>
-
-            <div class="form-group col-md-6">
-                <label for="destacado">Descatado:</label>
-                <input type="text" class="form-control" id="destacado" name="destacado"
-                    value="{{ $producto->destacado }}" readonly>
-            </div>
-
-            <!-- Botón Volver y Agregar al Carrito -->
-            <div class="mt-4 d-flex gap-2">
-                <a href="{{ route('productos.galeria') }}" class="btn btn-secondary">Volver</a>
-
-                <form action="{{ route('carrito.add', $producto->id) }}" method="POST">
-                    @csrf
-                    <div class="input-group" style="width: 200px;">
-                        <input type="number" name="cantidad" value="1" min="1" max="{{ $producto->stock }}"
-                            class="form-control">
-                        <button type="submit" class="btn btn-success">Agregar</button>
-                    </div>
-                </form>
-            </div>
-        </form>
-=======
         </div>
->>>>>>> fa9b8461e32e7d80a5281a6f2b45779534c4f174
     </div>
 
     @include('layoutsUsuario.footer')
