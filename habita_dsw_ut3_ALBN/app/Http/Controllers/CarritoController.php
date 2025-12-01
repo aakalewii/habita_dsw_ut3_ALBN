@@ -30,12 +30,30 @@ class CarritoController extends Controller
             ->first();
 
         if (!$carrito) {
-            $carrito = Carrito::create([
-                'sesion_id' => $sessionId,
-                'user_id' => $userId,
-                'estado' => 'activo',
-                'total' => 0
-            ]);
+            // CORRECCIÓN: Si el usuario está logueado, intentamos recuperar su último carrito activo
+            // aunque tenga una sesion_id antigua (por haber cerrado sesión y vuelto a entrar).
+            if ($userId) {
+                $carrito = Carrito::where('user_id', $userId)
+                    ->activo()
+                    ->latest('updated_at')
+                    ->first();
+
+                if ($carrito) {
+                    // Actualizamos la sesión del carrito recuperado a la actual
+                    $carrito->sesion_id = $sessionId;
+                    $carrito->save();
+                }
+            }
+
+            // Si aún no hay carrito (ni por sesión ni recuperado), creamos uno nuevo
+            if (!$carrito) {
+                $carrito = Carrito::create([
+                    'sesion_id' => $sessionId,
+                    'user_id' => $userId,
+                    'estado' => 'activo',
+                    'total' => 0
+                ]);
+            }
         } else {
             // Si el usuario se acaba de loguear, actualizamos el user_id del carrito actual
             if ($userId && !$carrito->user_id) {
