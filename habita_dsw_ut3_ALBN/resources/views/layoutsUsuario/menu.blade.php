@@ -39,6 +39,12 @@
             </ul>
             <div class="d-flex">
                 @auth
+                    <form action="{{ route('carrito.index') }}" method="GET" class="mb-0">
+                        @csrf
+                        <button type="submit" class="btn btn-outline-light btn-sm">
+                            <i class="bi bi-box-arrow-right"></i> Ver Carrito
+                        </button>
+                    </form>
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">

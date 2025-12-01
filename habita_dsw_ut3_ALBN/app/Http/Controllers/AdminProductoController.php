@@ -118,6 +118,7 @@ class AdminProductoController extends Controller
         ]);
 
         $producto= Producto::find($id);
+        $imagenActual = $producto->imagen_principal;
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio = $request->precio;
@@ -129,6 +130,8 @@ class AdminProductoController extends Controller
 
         if ($request->hasFile('imagen_principal')) {
             $producto->imagen_principal = $request->file('imagen_principal')->store('productos', 'public');
+        } else {
+            $producto->imagen_principal = $imagenActual;
         }
 
         $producto->update();
