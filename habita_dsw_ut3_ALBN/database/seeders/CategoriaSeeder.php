@@ -17,8 +17,26 @@ class CategoriaSeeder extends Seeder
                 'updated_at' => now(),
             ],
             [
-                'nombre' => 'Decoración',
-                'descripcion' => 'Artículos decorativos',
+                'nombre' => 'Decoracion',
+                'descripcion' => 'Articulos decorativos',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nombre' => 'Iluminacion',
+                'descripcion' => 'Lamparas y luminarias',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nombre' => 'Textiles',
+                'descripcion' => 'Alfombras y cojines',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+            [
+                'nombre' => 'Exterior',
+                'descripcion' => 'Muebles y decoracion para exteriores',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],
