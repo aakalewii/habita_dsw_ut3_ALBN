@@ -17,7 +17,6 @@
 
                 {{-- Filtro por Categoría --}}
                 <div class="col-md-2">
-                    {{-- Eliminamos el onchange="this.form.submit()" para usar el botón --}}
                     <select name="categoria_id" class="form-select">
                         <option value="">Todas las categorías</option>
                         @foreach ($categorias as $categoria)
@@ -36,6 +35,13 @@
                                 {{ $color }}
                             </option>
                         @endforeach
+                    </select>
+                </div>
+                {{-- Orden por nombre --}}
+                <div class="col-md-2">
+                    <select name="orden" class="form-select">
+                        <option value="nombre_asc" @selected(request('orden') === 'nombre_asc')>A-Z</option>
+                        <option value="nombre_desc" @selected(request('orden') === 'nombre_desc')>Z-A</option>
                     </select>
                 </div>
                 {{-- Filtros de precio --}}
