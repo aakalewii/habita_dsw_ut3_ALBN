@@ -36,6 +36,12 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
+    Route::get('categorias/buscar', [AdminCategoriaController::class, 'buscar'])
+        ->name('categorias.buscar');
+
+    Route::get('productos/buscar', [AdminProductoController::class, 'buscar'])
+        ->name('productos.buscar');
+    
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
 });

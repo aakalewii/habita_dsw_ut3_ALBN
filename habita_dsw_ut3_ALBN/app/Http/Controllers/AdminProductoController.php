@@ -19,10 +19,14 @@ class AdminProductoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->ensureAdmin();
-        $listaProductos = Producto::all();
+        if ($request->filled('buscar')) {
+            $listaProductos = Producto::where('nombre', 'like', '%'.$request->buscar.'%')->get();
+        } else {
+            $listaProductos = Producto::all();
+        }
         return view('admin.productos.index', compact('listaProductos'));
     }
 
@@ -152,5 +156,9 @@ class AdminProductoController extends Controller
 
         $resultado = $producto->delete();
         return redirect()->route('productos.index', Compact('resultado'));
+    }
+
+    public function buscar(Request $request){
+        return $this->index($request);
     }
 }
