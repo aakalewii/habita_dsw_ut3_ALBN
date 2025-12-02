@@ -33,8 +33,13 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @if($item->producto->imagen_principal)
-                                            <img src="{{ asset('storage/' . $item->producto->imagen_principal) }}"
+                                        @php
+                                            $imagen = is_array($item->producto->imagen_principal)
+                                                ? ($item->producto->imagen_principal[0] ?? null)
+                                                : $item->producto->imagen_principal;
+                                        @endphp
+                                        @if($imagen)
+                                            <img src="{{ asset('storage/' . $imagen) }}"
                                                 alt="{{ $item->producto->nombre }}" class="img-thumbnail me-3"
                                                 style="width: 60px; height: 60px; object-fit: cover;">
                                         @endif

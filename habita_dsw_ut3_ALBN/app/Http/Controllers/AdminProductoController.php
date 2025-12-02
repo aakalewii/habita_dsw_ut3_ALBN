@@ -6,6 +6,7 @@ use App\Models\Categoria;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AdminProductoController extends Controller
 {
@@ -51,13 +52,14 @@ class AdminProductoController extends Controller
             'nombre' => 'required',
             'descripcion' => 'required',
             'precio' => 'required',
-            'stock',
+            'stock' => 'required',
             'materiales' => 'required',
             'dimensiones' => 'required',
             'color_principal'=> 'required',
-            'imagen_principal'=> 'nullable|image|max:2048',
+            'imagen_principal'=> 'nullable|array',
+            'imagen_principal.*'=> 'image|max:2048',
             'destacado' => 'required',
-            'categoria_id'=> 'required|array'
+            'categoria_id'=> 'nullable|array'
         ]);
 
         $producto = new Producto();
@@ -71,7 +73,11 @@ class AdminProductoController extends Controller
         $producto->destacado = $request->destacado;
 
         if ($request->hasFile('imagen_principal')) {
-            $producto->imagen_principal = $request->file('imagen_principal')->store('productos', 'public');
+            $paths = [];
+            foreach ($request->file('imagen_principal') as $file) {
+                $paths[] = $file->store('productos', 'public');
+            }
+            $producto->imagen_principal = $paths;
         }
 
         $producto->save();
@@ -116,13 +122,14 @@ class AdminProductoController extends Controller
             'materiales' => 'required',
             'dimensiones' => 'required',
             'color_principal'=> 'required',
-            'imagen_principal'=> 'nullable|image|max:2048',
+            'imagen_principal'=> 'nullable|array',
+            'imagen_principal.*'=> 'image|max:2048',
             'destacado' => 'required',
             'categoria_id'=> 'required|array'
         ]);
 
         $producto= Producto::find($id);
-        $imagenActual = $producto->imagen_principal;
+        $imagenesActuales = $producto->imagen_principal ?? [];
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio = $request->precio;
@@ -132,11 +139,22 @@ class AdminProductoController extends Controller
         $producto->color_principal = $request->color_principal;
         $producto->destacado = $request->destacado;
 
-        if ($request->hasFile('imagen_principal')) {
-            $producto->imagen_principal = $request->file('imagen_principal')->store('productos', 'public');
+        if ($request->boolean('eliminar_imagenes')) {
+            foreach ($imagenesActuales as $rutaBorrar) {
+                Storage::disk('public')->delete($rutaBorrar);
+            }
+            $imagenesFiltradas = [];
         } else {
-            $producto->imagen_principal = $imagenActual;
+            $imagenesFiltradas = $imagenesActuales;
         }
+
+        if ($request->hasFile('imagen_principal')) {
+            foreach ($request->file('imagen_principal') as $file) {
+                $imagenesFiltradas[] = $file->store('productos', 'public');
+            }
+        }
+
+        $producto->imagen_principal = $imagenesFiltradas;
 
         $producto->update();
         $resultado = $producto->categorias()->sync($request->categoria_id);

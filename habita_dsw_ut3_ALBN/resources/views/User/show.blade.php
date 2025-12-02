@@ -9,8 +9,13 @@
             <div class="row g-0">
                 <div class="col-md-5">
                     <div class="h-100 bg-light d-flex align-items-center justify-content-center">
-                        @if(!empty($producto->imagen_principal))
-                            <img src="{{ Storage::url($producto->imagen_principal) }}" alt="Imagen de {{ $producto->nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                        @php
+                            $imagen = is_array($producto->imagen_principal)
+                                ? ($producto->imagen_principal[0] ?? null)
+                                : $producto->imagen_principal;
+                        @endphp
+                        @if(!empty($imagen))
+                            <img src="{{ Storage::url($imagen) }}" alt="Imagen de {{ $producto->nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
                         @else
                             <div class="text-center text-muted py-5 w-100">
                                 <i class="bi bi-image" style="font-size:3rem;"></i>

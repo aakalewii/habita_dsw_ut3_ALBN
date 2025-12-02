@@ -23,7 +23,7 @@ class ProductoFactory extends Factory
             'materiales' => $this->faker->randomElement(['Madera', 'Metal', 'Plastico', 'Vidrio', 'Tela']),
             'dimensiones' => "{$ancho}x{$alto}x{$fondo} cm",
             'color_principal' => $this->faker->safeColorName(),
-            'imagen_principal' => null,
+            'imagen_principal' => [],
             'destacado' => $this->faker->boolean(20),
         ];
     }

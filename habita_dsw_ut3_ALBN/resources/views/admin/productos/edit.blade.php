@@ -61,14 +61,27 @@
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label class="form-label">Imagen</label>
-                    <input type="file" name="imagen_principal" class="form-control">
+                    <label class="form-label">Imágenes</label>
+                    <input type="file" name="imagen_principal[]" class="form-control" multiple>
                     @if (!empty($producto->imagen_principal))
-                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
+                        <div class="d-flex flex-wrap gap-3 mt-3">
+                            @foreach ($producto->imagen_principal as $ruta)
+                                <div class="border p-2 text-center">
+                                    <img src="{{ asset('storage/' . $ruta) }}" width="100" class="d-block mb-2">
+                                </div>
+                            @endforeach
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" name="eliminar_imagenes" id="eliminar_imagenes" value="1">
+                            <label class="form-check-label" for="eliminar_imagenes">Eliminar todas las imágenes actuales</label>
+                        </div>
                     @endif
 
                     <!-- mensajes de error con plantillas BLADE -->
                     @error('imagen_principal')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                    @error('imagen_principal.*')
                         <small class="text-danger">{{ $message }}</small>
                     @enderror
                 </div>

@@ -97,14 +97,14 @@
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label class="form-label">Imagen</label>
-                    <input type="file" name="imagen_principal" class="form-control">
-                    @if (!empty($producto->imagen_principal))
-                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
-                    @endif
+                    <label class="form-label">Imágenes</label>
+                    <input type="file" name="imagen_principal[]" class="form-control" multiple>
 
                     <!-- mensajes de error con plantillas BLADE -->
                     @error('imagen_principal')
+                        <small class="text-danger">{{ $message }}</small>
+                    @enderror
+                    @error('imagen_principal.*')
                         <small class="text-danger">{{ $message }}</small>
                     @enderror
                 </div>

@@ -81,8 +81,13 @@
                     <div class="card h-100 shadow-sm border-0">
 
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
-                            @if(!empty($producto->imagen_principal))
-                                <img src="{{ Storage::url($producto->imagen_principal) }}"
+                            @php
+                                $imagen = is_array($producto->imagen_principal)
+                                    ? ($producto->imagen_principal[0] ?? null)
+                                    : $producto->imagen_principal;
+                            @endphp
+                            @if(!empty($imagen))
+                                <img src="{{ Storage::url($imagen) }}"
                                     alt="Imagen de {{ $producto->nombre }}" class="img-fluid h-100 w-100"
                                     style="object-fit: cover;">
                             @else

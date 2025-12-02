@@ -43,6 +43,7 @@ class Producto extends Model
      */
     protected $casts = [
         'precio' => 'decimal:2',
+        'imagen_principal' => 'array',
         'destacado' => 'boolean',
     ];
 

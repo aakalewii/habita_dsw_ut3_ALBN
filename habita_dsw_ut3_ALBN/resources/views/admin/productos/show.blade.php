@@ -57,10 +57,15 @@
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label class="form-label">Imagen</label>
-                    <input type="file" name="imagen_principal" class="form-control">
+                    <label class="form-label">Imágenes</label>
                     @if (!empty($producto->imagen_principal))
-                        <img src="{{ asset('storage/' . $producto->imagen_principal) }}" width="80" class="mt-2">
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @foreach ($producto->imagen_principal as $ruta)
+                                <img src="{{ asset('storage/' . $ruta) }}" width="100" class="border p-1">
+                            @endforeach
+                        </div>
+                    @else
+                        <p class="text-muted">Sin imágenes</p>
                     @endif
                 </div>
 
