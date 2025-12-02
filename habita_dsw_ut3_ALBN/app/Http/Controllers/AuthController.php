@@ -29,8 +29,8 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => 'required|email',
-            'password' => 'required|string'
+            'email' => ['required','email'],
+            'password' => ['required','string']
         ]);
 
         // Crear una clave única para el rate limiter basada en el email y la IP
@@ -54,9 +54,11 @@ class AuthController extends Controller
 
             // Guardar datos en sesión (REQUISITO 2.3)
             $user = Auth::user();
+
+            // Establecer la sesión de autorización
+            Session::put('autorizacion_usuario', true);
             Session::put('usuario_id', $user->id);
             Session::put('email', $user->email);
-            Session::put('sesionId', Str::uuid()->toString()); // ID único para navegador/pestaña
 
             if ($user->role?->nombre === 'Administrador') {
                 return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user->name);
@@ -108,10 +110,23 @@ class AuthController extends Controller
         // Login de la capa Auth (Facade de Laravel).
         Auth::login($user);
 
-        // Guardar datos en sesión también en el registro
+        // Crear datos de sesión estructurados
+        $datosSesion = [
+            'usuario_id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'role' => $rolCliente->nombre,
+            'sesionId' => Str::uuid()->toString(),
+            'login_time' => now()->toDateTimeString()
+        ];
+
+        // Guardar usuario en sesión
+        Session::put('usuario', json_encode($datosSesion));
+        Session::put('autorizacion_usuario', true);
         Session::put('usuario_id', $user->id);
         Session::put('email', $user->email);
-        Session::put('sesionId', Str::uuid()->toString());
+        Session::put('sesionId', $datosSesion['sesionId']);
+        Session::regenerate();
 
         return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
     }
