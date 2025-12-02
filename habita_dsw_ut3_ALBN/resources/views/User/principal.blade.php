@@ -6,7 +6,7 @@
         <h2><i class="bi bi-grid"></i> Galería de Productos</h2>
 
         {{-- Filtros por categoría --}}
-        {{-- Unificamos TODOS los filtros y la búsqueda en un solo formulario --}}
+        
         <form id="filtros-form" class="mb-4" action="{{ route('productos.galeria') }}" method="GET">
             <div class="row g-2 align-items-center">
                 {{-- Búsqueda por texto --}}

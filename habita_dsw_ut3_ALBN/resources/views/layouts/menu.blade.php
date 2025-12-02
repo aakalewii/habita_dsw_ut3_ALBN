@@ -36,8 +36,12 @@
                     </a>
                 </li>
             </ul>
-            <div class="d-flex">
+            <div class="d-flex gap-2">
                 @auth
+                    <!-- Preferencias -->
+                    <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-gear-fill"></i> Preferencias
+                    </a>
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">

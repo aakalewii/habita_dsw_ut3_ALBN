@@ -8,6 +8,8 @@ use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\AdminProductoController;
 use App\Http\Controllers\AuthController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CarritoController;
+use App\Http\Controllers\PreferenciasController;
 
 // Galería de productos (acceso público sin login)
 Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
@@ -23,6 +25,11 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 
 // Logout
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// preferencias
+Route::get('/preferencias', [PreferenciasController::class, 'edit'])->name('preferencias.edit');
+Route::post('/preferencias', [PreferenciasController::class, 'update'])->name('preferencias.update');
+
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
@@ -41,13 +48,10 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('productos/buscar', [AdminProductoController::class, 'buscar'])
         ->name('productos.buscar');
-    
+
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
 });
-
-// Rutas del Carrito (Requieren autenticación)
-use App\Http\Controllers\CarritoController;
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
