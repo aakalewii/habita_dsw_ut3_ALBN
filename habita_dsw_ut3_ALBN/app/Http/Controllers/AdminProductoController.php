@@ -118,14 +118,14 @@ class AdminProductoController extends Controller
             'nombre' => 'required',
             'descripcion' => 'required',
             'precio' => 'required',
-            'stock',
+            'stock'  => 'required',
             'materiales' => 'required',
             'dimensiones' => 'required',
             'color_principal'=> 'required',
             'imagen_principal'=> 'nullable|array',
             'imagen_principal.*'=> 'image|max:2048',
             'destacado' => 'required',
-            'categoria_id'=> 'required|array'
+            'categoria_id'=> 'nullable|array'
         ]);
 
         $producto= Producto::find($id);
