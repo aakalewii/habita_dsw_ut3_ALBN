@@ -39,6 +39,9 @@
             </ul>
             <div class="d-flex">
                 @auth
+                    <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-gear-fill"></i> Preferencias
+                    </a>
                     <form action="{{ route('carrito.index') }}" method="GET" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">
