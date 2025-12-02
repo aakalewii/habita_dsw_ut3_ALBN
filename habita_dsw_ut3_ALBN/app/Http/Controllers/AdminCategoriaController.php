@@ -18,10 +18,15 @@ class AdminCategoriaController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->ensureAdmin();
-        $listaCategorias = Categoria::all();
+
+        if ($request->filled('buscar')) {
+            $listaCategorias = Categoria::where('nombre', 'like', '%'.$request->buscar.'%')->get();
+        } else {
+            $listaCategorias = Categoria::all();
+        }
         return view('admin.categorias.index', compact('listaCategorias'));
     }
 
@@ -95,5 +100,9 @@ class AdminCategoriaController extends Controller
         $categoria = Categoria::find($id);
         $resultado = $categoria->delete();
         return redirect()->route('categorias.index', Compact('resultado'));
+    }
+
+    public function buscar(Request $request){
+        return $this->index($request);
     }
 }

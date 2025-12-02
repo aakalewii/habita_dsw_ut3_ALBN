@@ -19,10 +19,14 @@ class AdminProductoController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $this->ensureAdmin();
-        $listaProductos = Producto::all();
+        if ($request->filled('buscar')) {
+            $listaProductos = Producto::where('nombre', 'like', '%'.$request->buscar.'%')->get();
+        } else {
+            $listaProductos = Producto::all();
+        }
         return view('admin.productos.index', compact('listaProductos'));
     }
 
@@ -118,6 +122,7 @@ class AdminProductoController extends Controller
         ]);
 
         $producto= Producto::find($id);
+        $imagenActual = $producto->imagen_principal;
         $producto->nombre = $request->nombre;
         $producto->descripcion = $request->descripcion;
         $producto->precio = $request->precio;
@@ -129,6 +134,8 @@ class AdminProductoController extends Controller
 
         if ($request->hasFile('imagen_principal')) {
             $producto->imagen_principal = $request->file('imagen_principal')->store('productos', 'public');
+        } else {
+            $producto->imagen_principal = $imagenActual;
         }
 
         $producto->update();
@@ -149,5 +156,9 @@ class AdminProductoController extends Controller
 
         $resultado = $producto->delete();
         return redirect()->route('productos.index', Compact('resultado'));
+    }
+
+    public function buscar(Request $request){
+        return $this->index($request);
     }
 }

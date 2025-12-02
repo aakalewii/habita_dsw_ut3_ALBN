@@ -17,7 +17,6 @@
 
                 {{-- Filtro por Categoría --}}
                 <div class="col-md-2">
-                    {{-- Eliminamos el onchange="this.form.submit()" para usar el botón --}}
                     <select name="categoria_id" class="form-select">
                         <option value="">Todas las categorías</option>
                         @foreach ($categorias as $categoria)
@@ -38,6 +37,13 @@
                         @endforeach
                     </select>
                 </div>
+                {{-- Orden por nombre --}}
+                <div class="col-md-2">
+                    <select name="orden" class="form-select">
+                        <option value="nombre_asc" @selected(request('orden') === 'nombre_asc')>A-Z</option>
+                        <option value="nombre_desc" @selected(request('orden') === 'nombre_desc')>Z-A</option>
+                    </select>
+                </div>
                 {{-- Filtros de precio --}}
                 <div class="col-md-2">
                     <label for="precio_min" class="visually-hidden">Precio Mínimo</label>
@@ -55,7 +61,8 @@
                     <button type="submit" class="btn btn-primary flex-grow-1 me-2">
                         <i class="bi bi-funnel-fill"></i> Aplicar Filtros
                     </button>
-                    <a href="{{ route('productos.galeria') }}" class="btn btn-outline-secondary" title="Limpiar filtros">Limpiar Filtros<i class="bi bi-x-lg"></i></a>
+                    <a href="{{ route('productos.galeria') }}" class="btn btn-outline-secondary"
+                        title="Limpiar filtros">Limpiar Filtros<i class="bi bi-x-lg"></i></a>
                 </div>
             </div>
         </form>
@@ -69,8 +76,7 @@
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
                             @if(!empty($producto->imagen_principal))
                                 <img src="{{ Storage::url($producto->imagen_principal) }}"
-                                    alt="Imagen de {{ $producto->nombre }}"
-                                    class="img-fluid h-100 w-100"
+                                    alt="Imagen de {{ $producto->nombre }}" class="img-fluid h-100 w-100"
                                     style="object-fit: cover;">
                             @else
                                 <i class="bi bi-image text-muted" style="font-size:3rem;"></i>
@@ -85,12 +91,16 @@
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
-                            <a href="{{ route('user.productos.show', $producto) }}" class="btn btn-sm btn-outline-secondary">
+                            <a href="{{ route('user.productos.show', $producto) }}"
+                                class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i> Ver
                             </a>
-                            <a href="#" class="btn btn-sm btn-primary">
-                                <i class="bi bi-cart-plus"></i> Añadir
-                            </a>
+                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST" class="d-inline">
+                                @csrf
+                                <button type="submit" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-cart-plus"></i> Añadir
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

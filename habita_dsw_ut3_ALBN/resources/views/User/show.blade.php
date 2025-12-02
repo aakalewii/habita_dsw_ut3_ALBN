@@ -64,13 +64,17 @@
                             </div>
                         </div>
 
-                        <div class="mt-auto pt-3">
-                            <a href="{{ route('productos.galeria') }}" class="btn btn-sm btn-outline-secondary">
-                                <i class="bi bi-arrow-left"></i> Volver
-                            </a>
-                            <a href="#" class="btn btn-sm btn-primary">
-                                <i class="bi bi-cart-plus"></i> Añadir al Carrito
-                            </a>
+                        <div class="mt-4 d-flex gap-2">
+                            <a href="{{ route('productos.galeria') }}" class="btn btn-secondary">Volver</a>
+
+                            <form action="{{ route('carrito.add', $producto->id) }}" method="POST">
+                                @csrf
+                                <div class="input-group" style="width: 200px;">
+                                    <input type="number" name="cantidad" value="1" min="1" max="{{ $producto->stock }}"
+                                        class="form-control">
+                                    <button type="submit" class="btn btn-success">Agregar</button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>

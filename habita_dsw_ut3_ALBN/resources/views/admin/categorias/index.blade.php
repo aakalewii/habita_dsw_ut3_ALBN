@@ -9,6 +9,21 @@
             <a href="{{ route('categorias.create') }}" class="btn btn-outline-success">Crear Categoría</a>
         </div>
 
+        <form id="filtros-form" class="mb-4" action="{{ route('categorias.buscar') }}" method="GET">
+            <div class="row g-2 align-items-center">
+                {{-- Búsqueda por texto --}}
+                <div class="col-md-3">
+                    <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..."
+                        value="{{ request('buscar') }}">
+                </div>
+                <div class="col-md-3 d-flex">
+                    <button type="submit" class="btn btn-primary flex-grow-1 me-2">
+                        <i class="bi bi-funnel-fill"></i> Buscar
+                    </button>
+                </div>
+            </div>
+        </form>
+
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>

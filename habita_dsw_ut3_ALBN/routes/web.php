@@ -36,6 +36,25 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
+    Route::get('categorias/buscar', [AdminCategoriaController::class, 'buscar'])
+        ->name('categorias.buscar');
+
+    Route::get('productos/buscar', [AdminProductoController::class, 'buscar'])
+        ->name('productos.buscar');
+    
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
 });
+
+// Rutas del Carrito (Requieren autenticación)
+use App\Http\Controllers\CarritoController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
+    Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
+    Route::put('/carrito/update/{item}', [CarritoController::class, 'update'])->name('carrito.update');
+    Route::delete('/carrito/remove/{item}', [CarritoController::class, 'remove'])->name('carrito.remove');
+    Route::post('/carrito/clear', [CarritoController::class, 'clear'])->name('carrito.clear');
+    Route::post('/carrito/comprar', [CarritoController::class, 'comprar'])->name('carrito.comprar');
+});
+
