@@ -54,10 +54,17 @@
                     <label for="precio_max" class="visually-hidden">Precio Máximo</label>
                     <input type="number" name="precio_max" id="precio_max" class="form-control"
                         placeholder="Precio Máx." step="0.01" value="{{ request('precio_max') }}">
+                </div>  
+                <div class="col-md-2 d-flex align-items-center">
+                    <div class="form-check">
+                        <input type="checkbox" name="destacado" id="destacado" class="form-check-input" value="1"
+                            @checked(request()->boolean('destacado'))>
+                        <label class="form-check-label" for="destacado">Destacado</label>
+                    </div>
                 </div>
 
                 {{-- Botones de acción --}}
-                <div class="col-md-3 d-flex">
+                <div class="col-md-3 d-flex justify-content-end ms-auto">
                     <button type="submit" class="btn btn-primary flex-grow-1 me-2">
                         <i class="bi bi-funnel-fill"></i> Aplicar Filtros
                     </button>

@@ -45,13 +45,18 @@ class ProductoController extends Controller
             $query->where('color_principal', $request->color_principal);
         }
 
-        // Orden por nombre
+        // Orden por nombre (ascendente/descendente)
         if ($request->filled('orden')) {
             if ($request->orden === 'nombre_asc') {
                 $query->orderBy('nombre', 'asc');
             } elseif ($request->orden === 'nombre_desc') {
                 $query->orderBy('nombre', 'desc');
             }
+        }
+
+        //Filtrar por destacado
+        if ($request->boolean('destacado')) {
+            $query->where('destacado', true);
         }
 
         // Ejecuta la consulta final con todos los filtros aplicados.
