@@ -76,6 +76,11 @@
             </div>
         </form>
 
+        {{-- LECTURA DE LA MONEDA para mostrar el símbolo correcto--}}
+        @php
+            $monedaSimbolo = request()->cookie('preferencia_moneda', '€');
+        @endphp
+
         {{-- Galería --}}
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
             @forelse($listaProductos as $producto)
@@ -101,7 +106,8 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-primary">{{ $producto->nombre }}</h5>
                             <p class="card-text text-muted mb-1">{{ Str::limit($producto->descripcion, 60) }}</p>
-                            <p class="fw-bold text-success mt-auto">{{ $producto->precio }} €</p>
+                            {{-- Precio DINAMICO --}}
+                            <p class="fw-bold text-success mt-auto">{{ $producto->precio }} {{ $monedaSimbolo }}</p>
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
@@ -125,9 +131,9 @@
             @endforelse
         </div>
 
-        {{-- Paginación --}}
-        <div class="mt-4 d-flex justify-content-center">
-            {{ $listaProductos->withQueryString()->links() }}
+        {{-- Paginación de Laravel con Bootstrap 5 --}}
+        <div class="mt-5 mb-4">
+            {{ $listaProductos->appends(request()->query())->links() }}
         </div>
 
     </div>

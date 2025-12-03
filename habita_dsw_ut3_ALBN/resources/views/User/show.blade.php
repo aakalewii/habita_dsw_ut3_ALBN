@@ -36,7 +36,11 @@
                             @endif
                         </div>
 
-                        <p class="fs-4 fw-semibold text-success mb-3">{{ $producto->precio }} &euro;</p>
+                        {{-- LECTURA DE LA MONEDA para mostrar el símbolo correcto--}}
+                        @php
+                            $monedaSimbolo = request()->cookie('preferencia_moneda', '€');
+                        @endphp
+                        <p class="fs-4 fw-semibold text-success mb-3">{{ $producto->precio }} {{ $monedaSimbolo }}</p>
                         <p class="text-muted mb-3">{{ $producto->descripcion }}</p>
 
                         <div class="mb-3">
