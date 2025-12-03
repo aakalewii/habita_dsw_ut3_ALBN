@@ -15,9 +15,7 @@ class AdminCategoriaController extends Controller
         }
     }
 
-    /**
-     * Display a listing of the resource.
-     */
+    // Muestra todas las categorias y permite filtrarlas por nombre
     public function index(Request $request)
     {
         $this->ensureAdmin();
@@ -30,18 +28,14 @@ class AdminCategoriaController extends Controller
         return view('admin.categorias.index', compact('listaCategorias'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Enseña el formulario para crear una categoria nueva
     public function create()
     {
         $this->ensureAdmin();
         return view('admin.categorias.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guarda una categoria recien creada con sus datos
     public function store(Request $request)
     {
         $this->ensureAdmin();
@@ -58,27 +52,21 @@ class AdminCategoriaController extends Controller
         return redirect()->route('categorias.index', compact('resultado'));
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Muestra una categoria concreta por su id
     public function show(Categoria $categoria)
     {
         $this->ensureAdmin();
         return view('admin.categorias.show', compact('categoria'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Enseña el formulario para editar una categoria existente
     public function edit(Categoria $categoria)
     {
         $this->ensureAdmin();
         return view('admin.categorias.edit', Compact('categoria'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualiza la categoria indicada con los datos del formulario
     public function update(Request $request, string $id)
     {
         $this->ensureAdmin();
@@ -91,9 +79,7 @@ class AdminCategoriaController extends Controller
         return redirect()->route('categorias.index', Compact('resultado'));
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Borra la categoria seleccionada
     public function destroy(string $id)
     {
         $this->ensureAdmin();
@@ -102,6 +88,7 @@ class AdminCategoriaController extends Controller
         return redirect()->route('categorias.index', Compact('resultado'));
     }
 
+    // Busca categorias usando el mismo filtro que el listado
     public function buscar(Request $request){
         return $this->index($request);
     }

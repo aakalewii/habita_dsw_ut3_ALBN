@@ -33,6 +33,7 @@ Route::post('/preferencias', [PreferenciasController::class, 'update'])->name('p
 
 // Rutas protegidas (requieren autenticación)
 Route::middleware(['auth'])->group(function () {
+    // Ruta que muestra el panel del administrador
     Route::get('/admin', function () {
         $user = Auth::user();
 
@@ -43,13 +44,17 @@ Route::middleware(['auth'])->group(function () {
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
+    // Ruta que busca categorias segun el texto indicado
     Route::get('categorias/buscar', [AdminCategoriaController::class, 'buscar'])
         ->name('categorias.buscar');
 
+    // Ruta que busca productos segun el texto indicado
     Route::get('productos/buscar', [AdminProductoController::class, 'buscar'])
         ->name('productos.buscar');
 
+    // Rutas que listan, crean, editan, muestran y borran categorias
     Route::resource('categorias', AdminCategoriaController::class);
+    // Rutas que listan, crean, editan, muestran y borran productos
     Route::resource('productos', AdminProductoController::class);
 });
 
@@ -61,4 +66,3 @@ Route::middleware(['auth'])->group(function () {
     Route::post('/carrito/clear', [CarritoController::class, 'clear'])->name('carrito.clear');
     Route::post('/carrito/comprar', [CarritoController::class, 'comprar'])->name('carrito.comprar');
 });
-

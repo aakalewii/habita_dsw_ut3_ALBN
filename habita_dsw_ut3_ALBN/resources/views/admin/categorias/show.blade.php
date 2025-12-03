@@ -6,6 +6,7 @@
     <div class="container mt-4">
         <h1>Categoria: {{ $categoria->nombre }}</h1>
 
+        {{-- Muestra los datos de la categoria sin permitir edicion --}}
         <form>
             <div class="row">
                 <!-- Campo Nombre -->
@@ -29,4 +30,3 @@
 
     @include('layouts.footer')
 </body>
-
