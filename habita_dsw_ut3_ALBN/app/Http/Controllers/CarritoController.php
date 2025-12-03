@@ -19,18 +19,39 @@ class CarritoController extends Controller
         $sessionId = Session::getId();
         $userId = Auth::id();
 
-        // REQUISITO: "Un usuario puede tener carritos simultáneos (uno por pestaña/navegador)"
-        // Para cumplir esto estrictamente, el carrito debe buscarse ÚNICAMENTE por sesionId.
-        // Si buscáramos por user_id, podríamos recuperar un carrito de otra pestaña (Chrome) en esta (Firefox),
-        // lo cual violaría la separación de "uno por pestaña".
-        // El user_id se guarda solo para historial/referencia.
-
+        // 1. Buscar carrito de la sesión actual
         $carrito = Carrito::where('sesionId', $sessionId)
             ->activo()
             ->first();
 
+        // 2. Lógica de recuperación de carrito de usuario
+        if ($userId) {
+            // Buscar si el usuario tiene OTRO carrito activo en la BD (ej. de una sesión anterior o seeded)
+            $oldCart = Carrito::where('user_id', $userId)
+                ->where('id', '!=', $carrito?->id) // Que no sea el que acabamos de encontrar
+                ->activo()
+                ->latest()
+                ->first();
+
+            if ($oldCart) {
+                // Si encontramos un carrito antiguo del usuario...
+                // Y el carrito actual de la sesión no existe O está vacío...
+                if (!$carrito || $carrito->items()->count() == 0) {
+                    // ... Descartamos el carrito vacío actual (si existe)
+                    if ($carrito) {
+                        $carrito->delete();
+                    }
+
+                    // ... Y recuperamos el antiguo asignándole la sesión actual
+                    $carrito = $oldCart;
+                    $carrito->sesionId = $sessionId;
+                    $carrito->save();
+                }
+            }
+        }
+
+        // 3. Si todavía no tenemos carrito, crear uno nuevo
         if (!$carrito) {
-            // Si no hay carrito para esta sesión, creamos uno nuevo
             $carrito = Carrito::create([
                 'sesionId' => $sessionId,
                 'user_id' => $userId,
@@ -38,7 +59,7 @@ class CarritoController extends Controller
                 'total' => 0
             ]);
         } else {
-            // Si el usuario se acaba de loguear, actualizamos el user_id del carrito actual
+            // Si el carrito existe y es anónimo, asignarlo al usuario logueado
             if ($userId && !$carrito->user_id) {
                 $carrito->user_id = $userId;
                 $carrito->save();
