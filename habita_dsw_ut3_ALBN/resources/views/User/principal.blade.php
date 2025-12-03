@@ -37,11 +37,13 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Orden por nombre --}}
+                {{-- Orden  --}}
                 <div class="col-md-2">
                     <select name="orden" class="form-select">
                         <option value="nombre_asc" @selected(request('orden') === 'nombre_asc')>A-Z</option>
                         <option value="nombre_desc" @selected(request('orden') === 'nombre_desc')>Z-A</option>
+                        <option value="precio_asc" @selected(request('orden') === 'precio_asc')>Menor a Mayor precio</option>
+                        <option value="precio_desc" @selected(request('orden') === 'precio_desc')>Mayor a Menor precio</option>
                     </select>
                 </div>
                 {{-- Filtros de precio --}}

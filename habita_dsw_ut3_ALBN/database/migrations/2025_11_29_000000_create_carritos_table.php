@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('carritos', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id')->nullable(); // Para usuarios logueados
-            $table->string('sesion_id')->index(); // Para identificar el carrito por pestaña/navegador
+            $table->string('sesionId')->index(); // Para identificar el carrito por pestaña/navegador
             $table->decimal('total', 10, 2)->default(0);
             $table->string('estado')->default('activo'); // activo, completado, abandonado
             $table->timestamps();
