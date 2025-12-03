@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->string('materiales');
             $table->string('dimensiones');
             $table->string('color_principal');
-            $table->string('imagen_principal')->nullable();
+            $table->text('imagen_principal')->nullable();
             $table->boolean('destacado')->default(false);
             $table->timestamps();
 
