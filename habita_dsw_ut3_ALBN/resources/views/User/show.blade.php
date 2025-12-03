@@ -8,14 +8,18 @@
         <div class="card shadow-sm border-0">
             <div class="row g-0">
                 <div class="col-md-5">
-                    <div class="h-100 bg-light d-flex align-items-center justify-content-center">
-                        @php
-                            $imagen = is_array($producto->imagen_principal)
-                                ? ($producto->imagen_principal[0] ?? null)
-                                : $producto->imagen_principal;
-                        @endphp
-                        @if(!empty($imagen))
-                            <img src="{{ Storage::url($imagen) }}" alt="Imagen de {{ $producto->nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                    @php
+                        $imagenes = is_array($producto->imagen_principal)
+                            ? array_values(array_filter($producto->imagen_principal))
+                            : array_values(array_filter([$producto->imagen_principal]));
+
+                        $imagenPrincipal = $imagenes[0] ?? null;
+                        $imagenesSecundarias = array_slice($imagenes, 1);
+                    @endphp
+
+                    <div class="bg-light d-flex align-items-center justify-content-center" style="min-height: 320px;">
+                        @if(!empty($imagenPrincipal))
+                            <img src="{{ Storage::url($imagenPrincipal) }}" alt="Imagen de {{ $producto->nombre }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
                         @else
                             <div class="text-center text-muted py-5 w-100">
                                 <i class="bi bi-image" style="font-size:3rem;"></i>
@@ -23,6 +27,14 @@
                             </div>
                         @endif
                     </div>
+
+                    @if(!empty($imagenesSecundarias))
+                        <div class="d-flex flex-wrap gap-2 mt-2">
+                            @foreach($imagenesSecundarias as $extra)
+                                <img src="{{ Storage::url($extra) }}" alt="Imagen adicional de {{ $producto->nombre }}" class="img-thumbnail" style="width: 90px; height: 90px; object-fit: cover;">
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 <div class="col-md-7">
