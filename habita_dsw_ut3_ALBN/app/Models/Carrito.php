@@ -11,7 +11,7 @@ class Carrito extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'sesion_id', 'total', 'estado'];
+    protected $fillable = ['user_id', 'sesionId', 'total', 'estado'];
 
     public function items(): HasMany
     {

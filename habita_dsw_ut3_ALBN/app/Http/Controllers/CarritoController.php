@@ -20,40 +20,23 @@ class CarritoController extends Controller
         $userId = Auth::id();
 
         // REQUISITO: "Un usuario puede tener carritos simultáneos (uno por pestaña/navegador)"
-        // Para cumplir esto estrictamente, el carrito debe buscarse ÚNICAMENTE por sesion_id.
+        // Para cumplir esto estrictamente, el carrito debe buscarse ÚNICAMENTE por sesionId.
         // Si buscáramos por user_id, podríamos recuperar un carrito de otra pestaña (Chrome) en esta (Firefox),
         // lo cual violaría la separación de "uno por pestaña".
         // El user_id se guarda solo para historial/referencia.
 
-        $carrito = Carrito::where('sesion_id', $sessionId)
+        $carrito = Carrito::where('sesionId', $sessionId)
             ->activo()
             ->first();
 
         if (!$carrito) {
-            // CORRECCIÓN: Si el usuario está logueado, intentamos recuperar su último carrito activo
-            // aunque tenga una sesion_id antigua (por haber cerrado sesión y vuelto a entrar).
-            if ($userId) {
-                $carrito = Carrito::where('user_id', $userId)
-                    ->activo()
-                    ->latest('updated_at')
-                    ->first();
-
-                if ($carrito) {
-                    // Actualizamos la sesión del carrito recuperado a la actual
-                    $carrito->sesion_id = $sessionId;
-                    $carrito->save();
-                }
-            }
-
-            // Si aún no hay carrito (ni por sesión ni recuperado), creamos uno nuevo
-            if (!$carrito) {
-                $carrito = Carrito::create([
-                    'sesion_id' => $sessionId,
-                    'user_id' => $userId,
-                    'estado' => 'activo',
-                    'total' => 0
-                ]);
-            }
+            // Si no hay carrito para esta sesión, creamos uno nuevo
+            $carrito = Carrito::create([
+                'sesionId' => $sessionId,
+                'user_id' => $userId,
+                'estado' => 'activo',
+                'total' => 0
+            ]);
         } else {
             // Si el usuario se acaba de loguear, actualizamos el user_id del carrito actual
             if ($userId && !$carrito->user_id) {
