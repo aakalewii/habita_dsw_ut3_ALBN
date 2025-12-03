@@ -6,7 +6,7 @@
         <h2><i class="bi bi-grid"></i> Galería de Productos</h2>
 
         {{-- Filtros por categoría --}}
-        
+
         <form id="filtros-form" class="mb-4" action="{{ route('productos.galeria') }}" method="GET">
             <div class="row g-2 align-items-center">
                 {{-- Búsqueda por texto --}}
@@ -37,11 +37,13 @@
                         @endforeach
                     </select>
                 </div>
-                {{-- Orden por nombre --}}
+                {{-- Orden  --}}
                 <div class="col-md-2">
                     <select name="orden" class="form-select">
                         <option value="nombre_asc" @selected(request('orden') === 'nombre_asc')>A-Z</option>
                         <option value="nombre_desc" @selected(request('orden') === 'nombre_desc')>Z-A</option>
+                        <option value="precio_asc" @selected(request('orden') === 'precio_asc')>Menor a Mayor precio</option>
+                        <option value="precio_desc" @selected(request('orden') === 'precio_desc')>Mayor a Menor precio</option>
                     </select>
                 </div>
                 {{-- Filtros de precio --}}
@@ -54,7 +56,7 @@
                     <label for="precio_max" class="visually-hidden">Precio Máximo</label>
                     <input type="number" name="precio_max" id="precio_max" class="form-control"
                         placeholder="Precio Máx." step="0.01" value="{{ request('precio_max') }}">
-                </div>  
+                </div>
                 <div class="col-md-2 d-flex align-items-center">
                     <div class="form-check">
                         <input type="checkbox" name="destacado" id="destacado" class="form-check-input" value="1"

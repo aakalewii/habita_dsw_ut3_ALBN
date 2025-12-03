@@ -45,12 +45,16 @@ class ProductoController extends Controller
             $query->where('color_principal', $request->color_principal);
         }
 
-        // Orden por nombre (ascendente/descendente)
+        // Orden por nombre (ascendente/descendente) y precio
         if ($request->filled('orden')) {
             if ($request->orden === 'nombre_asc') {
                 $query->orderBy('nombre', 'asc');
             } elseif ($request->orden === 'nombre_desc') {
                 $query->orderBy('nombre', 'desc');
+            } elseif ($request->orden === 'precio_asc') {
+                $query->orderBy('precio', 'asc');
+            } elseif ($request->orden === 'precio_desc') {
+                $query->orderBy('precio', 'desc');
             }
         }
 
