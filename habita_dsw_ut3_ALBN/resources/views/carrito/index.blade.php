@@ -29,6 +29,11 @@
                         </tr>
                     </thead>
                     <tbody>
+                        {{-- LECTURA DE LA MONEDA para mostrar el símbolo correcto--}}
+                        @php
+                            $monedaSimbolo = request()->cookie('preferencia_moneda', '€');
+                        @endphp
+
                         @foreach($items as $item)
                             <tr>
                                 <td>
@@ -49,7 +54,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ number_format($item->precio_unitario, 2) }} €</td>
+
+                                <td>{{ number_format($item->precio_unitario, 2) }} {{ $monedaSimbolo }}</td>
                                 <td style="width: 150px;">
                                     <form action="{{ route('carrito.update', $item->id) }}" method="POST" class="d-flex">
                                         @csrf
@@ -61,7 +67,7 @@
                                         </button>
                                     </form>
                                 </td>
-                                <td>{{ number_format($item->precio_unitario * $item->cantidad, 2) }} €</td>
+                                <td>{{ number_format($item->precio_unitario * $item->cantidad, 2) }} {{ $monedaSimbolo }}</td>
                                 <td>
                                     <form action="{{ route('carrito.remove', $item->id) }}" method="POST">
                                         @csrf
@@ -78,15 +84,15 @@
                     <tfoot class="table-light">
                         <tr>
                             <td colspan="3" class="text-end fw-bold">Subtotal:</td>
-                            <td colspan="2">{{ number_format($subtotal, 2) }} €</td>
+                            <td colspan="2">{{ number_format($subtotal, 2) }} {{ $monedaSimbolo }}</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end fw-bold">Impuestos (10%):</td>
-                            <td colspan="2">{{ number_format($impuestos, 2) }} €</td>
+                            <td colspan="2">{{ number_format($impuestos, 2) }} {{ $monedaSimbolo }}</td>
                         </tr>
                         <tr>
                             <td colspan="3" class="text-end fw-bold fs-5">Total:</td>
-                            <td colspan="2" class="fs-5 fw-bold">{{ number_format($total, 2) }} €</td>
+                            <td colspan="2" class="fs-5 fw-bold">{{ number_format($total, 2) }} {{ $monedaSimbolo }}</td>
                         </tr>
                     </tfoot>
                 </table>

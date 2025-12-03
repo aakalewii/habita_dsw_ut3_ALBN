@@ -6,7 +6,7 @@
         <h2><i class="bi bi-grid"></i> Galería de Productos</h2>
 
         {{-- Filtros por categoría --}}
-        
+
         <form id="filtros-form" class="mb-4" action="{{ route('productos.galeria') }}" method="GET">
             <div class="row g-2 align-items-center">
                 {{-- Búsqueda por texto --}}
@@ -54,7 +54,7 @@
                     <label for="precio_max" class="visually-hidden">Precio Máximo</label>
                     <input type="number" name="precio_max" id="precio_max" class="form-control"
                         placeholder="Precio Máx." step="0.01" value="{{ request('precio_max') }}">
-                </div>  
+                </div>
                 <div class="col-md-2 d-flex align-items-center">
                     <div class="form-check">
                         <input type="checkbox" name="destacado" id="destacado" class="form-check-input" value="1"
@@ -73,6 +73,11 @@
                 </div>
             </div>
         </form>
+
+        {{-- LECTURA DE LA MONEDA para mostrar el símbolo correcto--}}
+        @php
+            $monedaSimbolo = request()->cookie('preferencia_moneda', '€');
+        @endphp
 
         {{-- Galería --}}
         <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
@@ -99,7 +104,8 @@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title text-primary">{{ $producto->nombre }}</h5>
                             <p class="card-text text-muted mb-1">{{ Str::limit($producto->descripcion, 60) }}</p>
-                            <p class="fw-bold text-success mt-auto">{{ $producto->precio }} €</p>
+                            {{-- Precio DINAMICO --}}
+                            <p class="fw-bold text-success mt-auto">{{ $producto->precio }} {{ $monedaSimbolo }}</p>
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
@@ -123,9 +129,9 @@
             @endforelse
         </div>
 
-        {{-- Paginación --}}
-        <div class="mt-4 d-flex justify-content-center">
-            {{ $listaProductos->withQueryString()->links() }}
+        {{-- Paginación de Laravel con Bootstrap 5 --}}
+        <div class="mt-5 mb-4">
+            {{ $listaProductos->appends(request()->query())->links() }}
         </div>
 
     </div>

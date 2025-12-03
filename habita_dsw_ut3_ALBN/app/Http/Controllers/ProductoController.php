@@ -5,6 +5,7 @@ use Illuminate\Support\Str;
 use App\Models\Producto;
 use App\Models\Categoria;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cookie;
 
 class ProductoController extends Controller
 {
@@ -59,9 +60,15 @@ class ProductoController extends Controller
             $query->where('destacado', true);
         }
 
+        // Obtener la preferencia de paginación del usuario desde las cookies (por defecto 12)
+        $itemsPorPagina = Cookie::get('preferencia_paginacion', 12);
+
+        // Asegurar que el valor sea válido (6, 12 o 24)
+        $itemsPorPagina = in_array($itemsPorPagina, [6, 12, 24]) ? $itemsPorPagina : 12;
+
         // Ejecuta la consulta final con todos los filtros aplicados.
-        // Divide el resultado en páginas de 12 productos por página.
-        $listaProductos = $query->paginate(12);
+        // Divide el resultado en páginas según la preferencia del usuario.
+        $listaProductos = $query->paginate($itemsPorPagina);
         $categorias = Categoria::all();
         $colores = Producto::query()
             ->whereNotNull('color_principal')
