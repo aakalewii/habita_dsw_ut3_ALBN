@@ -39,9 +39,8 @@
                                                 : $item->producto->imagen_principal;
                                         @endphp
                                         @if($imagen)
-                                            <img src="{{ asset('storage/' . $imagen) }}"
-                                                alt="{{ $item->producto->nombre }}" class="img-thumbnail me-3"
-                                                style="width: 60px; height: 60px; object-fit: cover;">
+                                            <img src="{{ asset('storage/' . $imagen) }}" alt="{{ $item->producto->nombre }}"
+                                                class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
                                         @endif
                                         <div>
                                             <h5 class="mb-0">{{ $item->producto->nombre }}</h5>
@@ -55,7 +54,7 @@
                                         @csrf
                                         @method('PUT')
                                         <input type="number" name="cantidad" value="{{ $item->cantidad }}" min="1"
-                                            max="{{ $item->producto->stock }}" class="form-control me-2">
+                                            class="form-control me-2" style="width: 80px;">
                                         <button type="submit" class="btn btn-sm btn-primary" title="Actualizar">
                                             <i class="bi bi-arrow-clockwise"></i> Act
                                         </button>
