@@ -6,6 +6,7 @@
     <div class="container mt-4">
         <h1>Producto: {{ $producto->nombre }}</h1>
 
+        {{-- Muestra los datos del producto sin permitir cambios --}}
         <form>
             <div class="row">
                 <!-- Campo ID -->

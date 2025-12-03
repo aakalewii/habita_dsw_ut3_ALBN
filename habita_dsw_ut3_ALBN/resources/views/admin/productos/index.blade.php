@@ -4,12 +4,14 @@
     @include('layouts.menu')
 
         <div class="container mt-4">
+            {{-- Vista que lista todos los productos para administrarlos --}}
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h1>Gestión de Productos</h1>
                 <a href="{{ route('productos.create') }}" class="btn btn-outline-success">Crear Producto</a>
             </div>
 
             
+        {{-- Buscador para filtrar productos por nombre --}}
         <form id="filtros-form" class="mb-4" action="{{ route('productos.buscar') }}" method="GET">
             <div class="row g-2 align-items-center">
                 {{-- Búsqueda por texto --}}
@@ -25,6 +27,7 @@
             </div>
         </form>
 
+                {{-- Tabla que muestra cada producto con opciones de ver, editar o borrar --}}
                 <table class="table table-striped table-hover">
                     <thead class="table-dark">
                         <tr>

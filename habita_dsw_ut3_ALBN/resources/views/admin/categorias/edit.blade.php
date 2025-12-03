@@ -5,7 +5,7 @@
     <div class="container mt-4">
         <h1 class="mb-4">Editar Categoría: {{ $categoria->nombre }}</h1>
 
-        <!-- Formulario para editar el permiso -->
+        {{-- Formulario para editar una categoria existente --}}
         <form action="{{ route('categorias.update', $categoria->id) }}" method="POST">
             @csrf
             @method('PUT')

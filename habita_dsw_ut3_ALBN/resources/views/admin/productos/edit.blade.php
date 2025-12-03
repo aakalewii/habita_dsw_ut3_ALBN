@@ -5,7 +5,7 @@
     <div class="container mt-4">
         <h1 class="mb-4">Editar Producto: {{ $producto->nombre }}</h1>
 
-        <!-- Formulario para editar el rol -->
+        {{-- Formulario para editar un producto existente --}}
         <form action="{{ route('productos.update', $producto->id) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')

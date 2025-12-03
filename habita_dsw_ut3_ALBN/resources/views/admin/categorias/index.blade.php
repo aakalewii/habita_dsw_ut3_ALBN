@@ -4,11 +4,13 @@
     @include('layouts.menu')
 
     <div class="container mt-4">
+        {{-- Vista que lista todas las categorias para gestionarlas --}}
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Gestión de Categorías</h1>
             <a href="{{ route('categorias.create') }}" class="btn btn-outline-success">Crear Categoría</a>
         </div>
 
+        {{-- Buscador para filtrar categorias por nombre --}}
         <form id="filtros-form" class="mb-4" action="{{ route('categorias.buscar') }}" method="GET">
             <div class="row g-2 align-items-center">
                 {{-- Búsqueda por texto --}}
@@ -24,6 +26,7 @@
             </div>
         </form>
 
+        {{-- Tabla que muestra cada categoria y permite ver, editar o borrar --}}
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>

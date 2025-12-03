@@ -6,7 +6,7 @@
     <div class="container mt-4">
         <h1 class="mb-4">Crear Rol</h1>
 
-        <!-- Formulario para crear un nuevo rol -->
+        {{-- Formulario para crear un producto nuevo --}}
         <form action="{{ route('productos.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('POST')

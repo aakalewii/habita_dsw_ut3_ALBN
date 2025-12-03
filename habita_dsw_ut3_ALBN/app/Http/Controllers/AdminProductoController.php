@@ -17,9 +17,7 @@ class AdminProductoController extends Controller
         }
     }
 
-    /**
-     * Display a listing of the resource.
-     */
+    // Muestra todos los productos y permite buscarlos por nombre
     public function index(Request $request)
     {
         $this->ensureAdmin();
@@ -31,9 +29,7 @@ class AdminProductoController extends Controller
         return view('admin.productos.index', compact('listaProductos'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Enseña el formulario para crear un producto nuevo
     public function create()
     {
         $this->ensureAdmin();
@@ -42,9 +38,7 @@ class AdminProductoController extends Controller
         return view('admin.productos.create', compact('listaCategorias'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Guarda un producto nuevo con sus datos e imagenes
     public function store(Request $request)
     {
         $this->ensureAdmin();
@@ -87,9 +81,7 @@ class AdminProductoController extends Controller
 
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // Muestra un producto concreto por su id
     public function show(int $id)
     {
         $this->ensureAdmin();
@@ -97,9 +89,7 @@ class AdminProductoController extends Controller
         return view('admin.productos.show', compact('producto'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // Enseña el formulario para editar un producto existente
     public function edit(int $id)
     {
         $this->ensureAdmin();
@@ -108,9 +98,7 @@ class AdminProductoController extends Controller
         return view('admin.productos.edit', compact('producto'), compact('listaCategorias'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
+    // Actualiza los datos del producto indicado
     public function update(Request $request, string $id)
     {
         $this->ensureAdmin();
@@ -163,9 +151,7 @@ class AdminProductoController extends Controller
 
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
+    // Borra el producto seleccionado y limpia sus categorias
     public function destroy(int $id)
     {
         $this->ensureAdmin();
@@ -176,6 +162,7 @@ class AdminProductoController extends Controller
         return redirect()->route('productos.index', Compact('resultado'));
     }
 
+    // Busca productos usando el mismo filtro que el listado
     public function buscar(Request $request){
         return $this->index($request);
     }

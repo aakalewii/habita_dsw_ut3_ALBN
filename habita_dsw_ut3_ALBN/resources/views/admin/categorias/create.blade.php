@@ -6,7 +6,7 @@
     <div class="container mt-4">
         <h1 class="mb-4">Crear Categoría</h1>
 
-        <!-- Formulario para crear un nuevo permiso -->
+        {{-- Formulario para crear una categoria nueva --}}
         <form action="{{ route('categorias.store') }}" method="POST">
             @csrf
             @method('POST')
