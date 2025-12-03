@@ -33,6 +33,7 @@
                         <option value="6" {{ $paginacion == '6' ? 'selected' : '' }}>6 elementos</option>
                         <option value="12" {{ $paginacion == '12' ? 'selected' : '' }}>12 elementos</option>
                         <option value="24" {{ $paginacion == '24' ? 'selected' : '' }}>24 elementos</option>
+                        <option value="48" {{ $paginacion == '48' ? 'selected' : '' }}>48 elementos</option>
                     </select>
                     <small class="form-text text-muted">Esta preferencia se aplicará al visualizar los productos.</small>
                 </div>
