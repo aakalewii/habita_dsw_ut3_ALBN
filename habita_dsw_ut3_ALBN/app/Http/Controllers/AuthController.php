@@ -60,6 +60,8 @@ class AuthController extends Controller
             Session::put('usuario_id', $user->id);
             Session::put('email', $user->email);
 
+            // Verificar si el usuario tiene rol de Administrador y redirigir al panel de administración
+            // En caso contrario, redirigir a la galería de productos (vista de cliente)
             if ($user->role?->nombre === 'Administrador') {
                 return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user->name);
             }
@@ -140,7 +142,7 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-
+        // Retorna a la vista de login
         return redirect()->route('login');
     }
 }
