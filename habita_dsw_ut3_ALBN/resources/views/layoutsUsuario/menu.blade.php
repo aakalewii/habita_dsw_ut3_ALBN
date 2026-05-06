@@ -24,9 +24,9 @@
             </ul>
             <div class="d-flex">
                 @if(session()->has('api_token'))
-                    <span class="navbar-text text-white me-3">
+                    <a href="{{ route('perfil.index') }}" class="nav-link text-white me-3">
                         <i class="bi bi-person-circle"></i> {{ session('name') }}
-                    </span>
+                    </a>
 
                     <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm me-2">
                         <i class="bi bi-gear-fill"></i> Preferencias

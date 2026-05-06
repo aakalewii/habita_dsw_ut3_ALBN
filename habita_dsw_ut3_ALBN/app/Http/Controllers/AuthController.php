@@ -161,11 +161,43 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        // Cierre de sesión en la capa Auth.
-        Auth::logout();
+        // Invalidar el token en la API externa
+        if (session()->has('api_token')) {
+            $this->apiUsuarios->logout();
+        }
+
+        // Limpiamos la sesión local
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
         // Retorna a la vista de login
-        return redirect()->route('login');
+        return redirect()->route('login')->with('success', 'Sesión cerrada correctamente.');
     }
+
+    /**
+     * Mostrar el perfil del usuario autenticado
+     */
+    public function perfil()
+    {
+        // Hacemos la petición a la API de Usuarios mediante nuestro servicio
+        $response = $this->apiUsuarios->perfil();
+
+        // Comprobamos si la API nos devuelve un OK
+        if ($response->successful()) {
+            // Extraemos los datos del JSON
+            $usuario = $response->json();
+            
+            // Retornamos la vista inyectando los datos del usuario.
+            return view('User.index', compact('usuario')); 
+        }
+
+        // Si la API falla (ej. token inválido), destruimos la sesión local y mandamos al login
+        session()->invalidate();
+        session()->regenerateToken();
+
+        return redirect()->route('login')->withErrors([
+            'email' => 'Tu sesión ha caducado o es inválida. Por favor, vuelve a iniciar sesión.'
+        ]);
+    }
+
 }

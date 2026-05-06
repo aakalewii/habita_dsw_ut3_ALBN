@@ -28,9 +28,9 @@
                 <!-- Verificamos que haya sesión iniciada con nuestro token -->
                 @if(session()->has('api_token'))
                     <!-- Mostramos el nombre del administrador -->
-                    <span class="text-white me-3">
-                        <i class="bi bi-person-badge"></i> {{ session('name') }}
-                    </span>
+                    <a href="{{ route('perfil.index') }}" class="nav-link text-white me-3">
+                        <i class="bi bi-person-circle"></i> {{ session('name') }}
+                    </a>
 
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
                         @csrf
