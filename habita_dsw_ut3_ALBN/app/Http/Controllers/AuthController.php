@@ -11,9 +11,18 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use App\Services\ApiUsuarioService;
 
 class AuthController extends Controller
 {
+    protected $apiUsuarios;
+
+    // Inyectamos el servicio para consumir la API
+    public function __construct(ApiUsuarioService $apiUsuarios)
+    {
+        $this->apiUsuarios = $apiUsuarios;
+    }
+
     // Login y registro de usuario utilizando la capa intermedia Auth de Laravel.
     /**
      * Formulario de login
@@ -28,15 +37,13 @@ class AuthController extends Controller
      */
     public function login(Request $request)
     {
-        $credentials = $request->validate([
+        $request->validate([
             'email' => ['required','email'],
             'password' => ['required','string']
         ]);
 
-        // Crear una clave única para el rate limiter basada en el email y la IP
         $throttleKey = Str::lower($request->input('email')) . '|' . $request->ip();
 
-        // Verificar si el usuario está bloqueado por demasiados intentos
         if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
             $seconds = RateLimiter::availableIn($throttleKey);
 
@@ -45,35 +52,46 @@ class AuthController extends Controller
             ]);
         }
 
-        // Login propio de la capa Auth (Facade de Laravel).
-        if (Auth::attempt($credentials)) {
-            $request->session()->regenerate();
+        // 1. Llamar a la API de Usuarios para el login
+        $response = $this->apiUsuarios->login($request->email, $request->password);
 
-            // Limpiar los intentos fallidos si el login es exitoso
-            RateLimiter::clear($throttleKey);
+        if ($response->successful()) {
+            $data = $response->json();
+            
+            // 2. Guardar el token y los permisos en sesión (Requisito Obligatorio)
+            Session::put('api_token', $data['access_token']);
+            Session::put('user_rol', $data['rol']);
+            Session::put('user_abilities', $data['abilities']);
 
-            // Guardar datos en sesión (REQUISITO 2.3)
-            $user = Auth::user();
+            // 3. Obtener el perfil del usuario usando el nuevo token
+            $perfilResponse = $this->apiUsuarios->perfil();
+            
+            if ($perfilResponse->successful()) {
+                $user = $perfilResponse->json();
+                
+                // 4. Recrear las variables de sesión que utilizaba tu monolito antiguo
+                Session::put('autorizacion_usuario', true);
+                Session::put('usuario_id', $user['id']);
+                Session::put('email', $user['email']);
+                Session::put('name', $user['name']);
+                Session::put('sesionId', Str::uuid()->toString());
 
-            // Establecer la sesión de autorización
-            Session::put('autorizacion_usuario', true);
-            Session::put('usuario_id', $user->id);
-            Session::put('email', $user->email);
+                RateLimiter::clear($throttleKey);
+                $request->session()->regenerate();
 
-            // Verificar si el usuario tiene rol de Administrador y redirigir al panel de administración
-            // En caso contrario, redirigir a la galería de productos (vista de cliente)
-            if ($user->role?->nombre === 'Administrador') {
-                return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user->name);
+                // 5. Redirigir según el rol devuelto por la API
+                if ($data['rol'] === 'Administrador') {
+                    return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user['name']);
+                }
+
+                return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . $user['name']);
             }
-
-            return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . $user->name);
         }
 
-        // Incrementar el contador de intentos fallidos
-        RateLimiter::hit($throttleKey, 300); // 300 segundos = 5 minutos
+        RateLimiter::hit($throttleKey, 300);
 
         return back()->withErrors([
-            'email' => 'Las credenciales no son correctas.',
+            'email' => 'Las credenciales no son correctas o hubo un error en la API.',
         ])->onlyInput('email');
     }
 
@@ -86,51 +104,56 @@ class AuthController extends Controller
     }
 
     /**
-     * Registro de usuario
+     * Registro de usuario consumiendo la API
      */
     public function register(Request $request)
     {
         $request->validate([
             'name' => 'required|string|max:255',
-            'apellidos' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
+            'email' => 'required|email',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
-        // Obtener el rol de "Cliente" (los usuarios registrados desde la web siempre son clientes)
-        $rolCliente = Role::where('nombre', 'Cliente')->first();
-
-        // Utilizando el propio modelo que viene con Laravel por defecto.
-        $user = User::create([
+        // 1. Llamar a la API para registrar al usuario
+        $response = $this->apiUsuarios->registrar([
             'name' => $request->name,
-            'apellidos' => $request->apellidos,
             'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $rolCliente->id, // Asignar automáticamente el rol de Cliente
+            'password' => $request->password,
         ]);
 
-        // Login de la capa Auth (Facade de Laravel).
-        Auth::login($user);
+        if ($response->successful()) {
+            
+            // 2. Si el registro es exitoso, hacemos login automáticamente mediante la API
+            $loginResponse = $this->apiUsuarios->login($request->email, $request->password);
 
-        // Crear datos de sesión estructurados
-        $datosSesion = [
-            'usuario_id' => $user->id,
-            'email' => $user->email,
-            'name' => $user->name,
-            'role' => $rolCliente->nombre,
-            'sesionId' => Str::uuid()->toString(),
-            'login_time' => now()->toDateTimeString()
-        ];
+            if ($loginResponse->successful()) {
+                $loginData = $loginResponse->json();
+                
+                Session::put('api_token', $loginData['access_token']);
+                Session::put('user_rol', $loginData['rol']);
+                Session::put('user_abilities', $loginData['abilities']);
 
-        // Guardar usuario en sesión
-        Session::put('usuario', json_encode($datosSesion));
-        Session::put('autorizacion_usuario', true);
-        Session::put('usuario_id', $user->id);
-        Session::put('email', $user->email);
-        Session::put('sesionId', $datosSesion['sesionId']);
-        Session::regenerate();
+                // Obtener datos del perfil
+                $perfilResponse = $this->apiUsuarios->perfil();
+                $user = $perfilResponse->json();
 
-        return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
+                // Establecer sesiones
+                Session::put('autorizacion_usuario', true);
+                Session::put('usuario_id', $user['id']);
+                Session::put('email', $user['email']);
+                Session::put('name', $user['name']);
+                Session::put('sesionId', Str::uuid()->toString());
+                
+                $request->session()->regenerate();
+
+                return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
+            }
+        }
+
+        // Si la API devuelve un error (ej. email duplicado)
+        return back()->withErrors([
+            'email' => 'No se pudo completar el registro. Es posible que el correo ya esté en uso.',
+        ])->withInput();
     }
 
     /**

@@ -15,13 +15,13 @@
                     @enderror
                 </div>
 
-                <div class="mb-3">
+<!--                 <div class="mb-3">
                     <label class="form-label">Apellidos</label>
                     <input type="text" name="apellidos" class="form-control" value="{{ old('apellidos') }}" required>
                     @error('apellidos')
                         <span class="text-danger small">{{ $message }}</span>
                     @enderror
-                </div>
+                </div> -->
 
                 <div class="mb-3">
                     <label class="form-label">Correo electrónico</label>

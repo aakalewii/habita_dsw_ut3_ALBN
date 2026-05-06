@@ -1,39 +1,40 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
     <div class="container-fluid">
-        <!-- Opción Inicio -->
-        <li class="nav-item">
-            <a class="navbar-brand fw-bold {{ request()->routeIs('productos.galeria') }}" href="{{ route('productos.galeria') }}">
-                <i class="bi bi-house-door-fill"></i> Inicio </a>
+        <li class="nav-item list-unstyled">
+            <a class="navbar-brand fw-bold {{ request()->routeIs('productos.galeria') ? 'active' : '' }}" href="{{ route('productos.galeria') }}">
+                <i class="bi bi-house-door-fill"></i> Inicio 
+            </a>
         </li>
 
-        <!-- Opciones del Menú -->
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                @guest
-                    <!-- Opción Registrar -->
+                @if(!session()->has('api_token'))
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('register') }}">
                             <i class="bi bi-people-fill"></i> Registrarse
                         </a>
                     </li>
 
-                    <!-- Opción Login -->
                     <li class="nav-item">
                         <a class="nav-link text-white" href="{{ route('login') }}">
                             <i class="bi bi-shield-lock-fill"></i> Login
                         </a>
                     </li>
-                @endguest
+                @endif
             </ul>
             <div class="d-flex">
-                @auth
-                    <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm">
+                @if(session()->has('api_token'))
+                    <span class="navbar-text text-white me-3">
+                        <i class="bi bi-person-circle"></i> {{ session('name') }}
+                    </span>
+
+                    <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm me-2">
                         <i class="bi bi-gear-fill"></i> Preferencias
                     </a>
-                    <form action="{{ route('carrito.index') }}" method="GET" class="mb-0">
+                    <form action="{{ route('carrito.index') }}" method="GET" class="mb-0 me-2">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-box-arrow-right"></i> Ver Carrito
+                            <i class="bi bi-cart-fill"></i> Ver Carrito
                         </button>
                     </form>
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
@@ -42,7 +43,7 @@
                             <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                         </button>
                     </form>
-                @endauth
+                @endif
             </div>
         </div>
     </div>
