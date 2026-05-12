@@ -2,94 +2,116 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Services\ApiMueblesService;
 
-class AdminCategoriaController extends Controller
+class AdminCategoriaController extends AdminBaseController
 {
-    private function ensureAdmin(): void
+    protected ApiMueblesService $apiMuebles;
+
+    public function __construct(ApiMueblesService $apiMuebles)
     {
-        if (!Auth::check() || Auth::user()->role?->nombre !== 'Administrador') {
-            abort(403);
-        }
+        $this->apiMuebles = $apiMuebles;
     }
 
-    // Muestra todas las categorias y permite filtrarlas por nombre
     public function index(Request $request)
     {
         $this->ensureAdmin();
 
-        if ($request->filled('buscar')) {
-            $listaCategorias = Categoria::where('nombre', 'like', '%'.$request->buscar.'%')->get();
-        } else {
-            $listaCategorias = Categoria::all();
-        }
+        $filtros = $request->filled('buscar') ? ['search' => $request->buscar] : [];
+        $respuesta = $this->apiMuebles->listarCategorias($filtros);
+        $listaCategorias = collect($respuesta->successful() ? $this->extractData($respuesta) : []);
+
         return view('admin.categorias.index', compact('listaCategorias'));
     }
 
-    // Enseña el formulario para crear una categoria nueva
     public function create()
     {
         $this->ensureAdmin();
         return view('admin.categorias.create');
     }
 
-    // Guarda una categoria recien creada con sus datos
     public function store(Request $request)
     {
         $this->ensureAdmin();
         $request->validate([
-            'nombre' => 'required',
-            'descripcion' => 'required',
+            'nombre'      => 'required|string|max:255',
+            'descripcion' => 'required|string',
         ]);
 
-        $categoria = new Categoria();
-        $categoria->nombre = $request->nombre;
-        $categoria->descripcion = $request->descripcion;
+        $respuesta = $this->apiMuebles->crearCategoria([
+            'nombre'      => $request->nombre,
+            'descripcion' => $request->descripcion,
+        ]);
 
-        $resultado = $categoria->save();
-        return redirect()->route('categorias.index', compact('resultado'));
+        if (!$respuesta->successful()) {
+            return back()->withErrors(['api' => 'Error al crear la categoría: ' . $respuesta->body()]);
+        }
+
+        return redirect()->route('categorias.index')->with('success', 'Categoría creada correctamente.');
     }
 
-    // Muestra una categoria concreta por su id
-    public function show(Categoria $categoria)
+    public function show(int $id)
     {
         $this->ensureAdmin();
+
+        $respuesta = $this->apiMuebles->verCategoria($id);
+        if (!$respuesta->successful()) {
+            abort(404);
+        }
+
+        $categoria = $this->extractData($respuesta);
         return view('admin.categorias.show', compact('categoria'));
     }
 
-    // Enseña el formulario para editar una categoria existente
-    public function edit(Categoria $categoria)
+    public function edit(int $id)
     {
         $this->ensureAdmin();
-        return view('admin.categorias.edit', Compact('categoria'));
+
+        $respuesta = $this->apiMuebles->verCategoria($id);
+        if (!$respuesta->successful()) {
+            abort(404);
+        }
+
+        $categoria = $this->extractData($respuesta);
+        return view('admin.categorias.edit', compact('categoria'));
     }
 
-    // Actualiza la categoria indicada con los datos del formulario
-    public function update(Request $request, string $id)
+    public function update(Request $request, int $id)
     {
         $this->ensureAdmin();
-        $categoria = Categoria::find($id);
-        $categoria->nombre = $request->nombre;
-        $categoria->descripcion = $request->descripcion;
+        $request->validate([
+            'nombre'      => 'required|string|max:255',
+            'descripcion' => 'required|string',
+        ]);
 
-        $resultado = $categoria->update();
+        $respuesta = $this->apiMuebles->actualizarCategoria($id, [
+            'nombre'      => $request->nombre,
+            'descripcion' => $request->descripcion,
+        ]);
 
-        return redirect()->route('categorias.index', Compact('resultado'));
+        if (!$respuesta->successful()) {
+            return back()->withErrors(['api' => 'Error al actualizar la categoría: ' . $respuesta->body()]);
+        }
+
+        return redirect()->route('categorias.index')->with('success', 'Categoría actualizada correctamente.');
     }
 
-    // Borra la categoria seleccionada
-    public function destroy(string $id)
+    public function destroy(int $id)
     {
         $this->ensureAdmin();
-        $categoria = Categoria::find($id);
-        $resultado = $categoria->delete();
-        return redirect()->route('categorias.index', Compact('resultado'));
+
+        $respuesta = $this->apiMuebles->eliminarCategoria($id);
+
+        if (!$respuesta->successful()) {
+            return back()->withErrors(['api' => 'Error al eliminar la categoría.']);
+        }
+
+        return redirect()->route('categorias.index')->with('success', 'Categoría eliminada correctamente.');
     }
 
-    // Busca categorias usando el mismo filtro que el listado
-    public function buscar(Request $request){
+    public function buscar(Request $request)
+    {
         return $this->index($request);
     }
 }

@@ -3,105 +3,80 @@
 <body>
     @include('layouts.menu')
     <div class="container mt-4">
-        <h1 class="mb-4">Editar Producto: {{ $producto->nombre }}</h1>
+        <h1 class="mb-4">Editar Producto: {{ $producto['nombre'] }}</h1>
 
-        {{-- Formulario para editar un producto existente --}}
-        <form action="{{ route('productos.update', $producto->id) }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('productos.update', $producto['id']) }}" method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
             <div class="row">
-                <!-- Campo Nombre -->
                 <div class="form-group col-md-6">
                     <label for="nombre">Nombre:</label>
-                    <input type="text" class="form-control" id="nombre" name="nombre" value="{{ $producto->nombre }}">
+                    <input type="text" class="form-control" id="nombre" name="nombre"
+                        value="{{ old('nombre', $producto['nombre']) }}">
+                    @error('nombre') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
-                <!-- Campo Permisos -->
                 <div class="form-group col-md-6">
-                    <label for="categorias">Categorías:</label>
-                    <select class="form-control" id="categorias" name="categoria_id[]" multiple>
+                    <label for="categoria_id">Categoría:</label>
+                    <select class="form-control" id="categoria_id" name="categoria_id">
                         @foreach ($listaCategorias as $categoria)
-                            <option value="{{ $categoria->id }}"
-                                @if ($producto->categorias->contains('id', $categoria->id)) selected @endif>
-                                {{ $categoria->nombre }}
+                            <option value="{{ $categoria['id'] }}"
+                                @selected(($producto['categoria_id'] ?? null) == $categoria['id'])>
+                                {{ $categoria['nombre'] }}
                             </option>
                         @endforeach
                     </select>
+                    @error('categoria_id') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label for="descripción">Descripción:</label>
-                    <input type="text" class="form-control" id="descripcion" name="descripcion" value="{{ $producto->descripcion }}">
+                    <label for="descripcion">Descripción:</label>
+                    <input type="text" class="form-control" id="descripcion" name="descripcion"
+                        value="{{ old('descripcion', $producto['descripcion']) }}">
+                    @error('descripcion') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
                     <label for="precio">Precio:</label>
-                    <input type="number" class="form-control" id="precio" name="precio" value="{{ $producto->precio }}">
+                    <input type="number" class="form-control" id="precio" name="precio" step="0.01"
+                        value="{{ old('precio', $producto['precio']) }}">
+                    @error('precio') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
                     <label for="stock">Stock:</label>
-                    <input type="number" class="form-control" id="stock" name="stock" value="{{ $producto->stock }}">
+                    <input type="number" class="form-control" id="stock" name="stock"
+                        value="{{ old('stock', $producto['stock']) }}">
+                    @error('stock') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label for="materiales">Materiales:</label>
-                    <input type="text" class="form-control" id="materiales" name="materiales" value="{{ $producto->materiales }}">
+                    <label for="material">Material:</label>
+                    <input type="text" class="form-control" id="material" name="material"
+                        value="{{ old('material', $producto['material'] ?? '') }}">
+                    @error('material') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label for="dimensiones">Dimensiones:</label>
-                    <input type="text" class="form-control" id="dimensiones" name="dimensiones" value="{{ $producto->dimensiones }}">
+                    <label for="color">Color:</label>
+                    <input type="text" class="form-control" id="color" name="color"
+                        value="{{ old('color', $producto['color'] ?? '') }}">
+                    @error('color') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
 
                 <div class="form-group col-md-6">
-                    <label for="color_principal">Color:</label>
-                    <input type="text" class="form-control" id="color_principal" name="color_principal" value="{{ $producto->color_principal }}">
-                </div>
-
-                <div class="form-group col-md-6">
-                    <label class="form-label">Imágenes</label>
-                    <input type="file" name="imagen_principal[]" class="form-control" multiple>
-                    @if (!empty($producto->imagen_principal))
-                        <div class="d-flex flex-wrap gap-3 mt-3">
-                            @foreach ($producto->imagen_principal as $ruta)
-                                <div class="border p-2 text-center">
-                                    <img src="{{ asset('storage/' . $ruta) }}" width="100" class="d-block mb-2">
-                                </div>
-                            @endforeach
-                        </div>
-                        <div class="form-check mt-2">
-                            <input class="form-check-input" type="checkbox" name="eliminar_imagenes" id="eliminar_imagenes" value="1">
-                            <label class="form-check-label" for="eliminar_imagenes">Eliminar todas las imágenes actuales</label>
+                    <label class="form-label">Imagen</label>
+                    <input type="file" name="imagen_principal" class="form-control">
+                    @if(!empty($producto['imagen_url']))
+                        <div class="mt-2">
+                            <img src="{{ $producto['imagen_url'] }}" width="100" class="border p-1">
                         </div>
                     @endif
-
-                    <!-- mensajes de error con plantillas BLADE -->
-                    @error('imagen_principal')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                    @error('imagen_principal.*')
-                        <small class="text-danger">{{ $message }}</small>
-                    @enderror
-                </div>
-
-                <div class="form-group col-md-6">
-                    <label for="destacado">Destacado:</label>
-
-                    <!-- hidden para enviar 0 si no se marca -->
-                    <input type="hidden" name="destacado" value="0">
-
-                    <!-- Checkbox (envía 1 si está marcado) -->
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="1" id="destacado" name="destacado" {{ old('destacado', $producto->destacado) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="destacado">Marcar como destacado</label>
-                    </div>
-
+                    @error('imagen_principal') <small class="text-danger">{{ $message }}</small> @enderror
                 </div>
             </div>
 
-            <!-- Botones -->
             <div class="mt-4">
                 <button type="submit" class="btn btn-primary">Actualizar</button>
                 <a href="{{ route('productos.index') }}" class="btn btn-secondary">Volver</a>

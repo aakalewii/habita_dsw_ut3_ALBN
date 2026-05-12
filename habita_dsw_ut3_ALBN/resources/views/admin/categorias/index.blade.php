@@ -4,18 +4,15 @@
     @include('layouts.menu')
 
     <div class="container mt-4">
-        {{-- Vista que lista todas las categorias para gestionarlas --}}
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h1>Gestión de Categorías</h1>
             <a href="{{ route('categorias.create') }}" class="btn btn-outline-success">Crear Categoría</a>
         </div>
 
-        {{-- Buscador para filtrar categorias por nombre --}}
         <form id="filtros-form" class="mb-4" action="{{ route('categorias.buscar') }}" method="GET">
             <div class="row g-2 align-items-center">
-                {{-- Búsqueda por texto --}}
                 <div class="col-md-3">
-                    <input type="text" name="buscar" class="form-control" placeholder="Buscar producto..."
+                    <input type="text" name="buscar" class="form-control" placeholder="Buscar categoría..."
                         value="{{ request('buscar') }}">
                 </div>
                 <div class="col-md-3 d-flex">
@@ -26,7 +23,6 @@
             </div>
         </form>
 
-        {{-- Tabla que muestra cada categoria y permite ver, editar o borrar --}}
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
@@ -39,25 +35,25 @@
             <tbody>
                 @foreach ($listaCategorias as $categoria)
                     <tr>
-                        <td>{{ $categoria->id }}</td>
+                        <td>{{ $categoria['id'] }}</td>
                         <td>
-                            <a href="{{ route('categorias.show', $categoria->id) }}" class="text-decoration-none">
-                                {{ $categoria->nombre }}
+                            <a href="{{ route('categorias.show', $categoria['id']) }}" class="text-decoration-none">
+                                {{ $categoria['nombre'] }}
                             </a>
                         </td>
                         <td>
-                            <a href="{{ route('categorias.show', $categoria->id) }}" class="text-decoration-none">
-                                {{ $categoria->descripcion }}
+                            <a href="{{ route('categorias.show', $categoria['id']) }}" class="text-decoration-none">
+                                {{ $categoria['descripcion'] }}
                             </a>
                         </td>
                         <td class="col-1 text-center">
-                            <a href="{{ route('categorias.edit', $categoria) }}" class="btn btn-primary btn-sm">
+                            <a href="{{ route('categorias.edit', $categoria['id']) }}" class="btn btn-primary btn-sm">
                                 Editar
                             </a>
                         </td>
                         <td class="col-1 text-center">
-                            <form action="{{ route('categorias.destroy', $categoria) }}" method="POST"
-                                onsubmit="return confirm('¿Estás seguro de eliminar esta categoria?');">
+                            <form action="{{ route('categorias.destroy', $categoria['id']) }}" method="POST"
+                                onsubmit="return confirm('¿Estás seguro de eliminar esta categoría?');">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger btn-sm">Eliminar</button>

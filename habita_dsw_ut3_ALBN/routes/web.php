@@ -1,13 +1,11 @@
 <?php
 
-use Illuminate\Support\Facades\Response;
-use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Session;
 use App\Http\Controllers\AdminCategoriaController;
 use App\Http\Controllers\ProductoController;
 use App\Http\Controllers\AdminProductoController;
 use App\Http\Controllers\AuthController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CarritoController;
 use App\Http\Controllers\PreferenciasController;
 
@@ -32,34 +30,24 @@ Route::get('/preferencias', [PreferenciasController::class, 'edit'])->name('pref
 Route::post('/preferencias', [PreferenciasController::class, 'update'])->name('preferencias.update');
 
 
-// Rutas protegidas (requieren autenticación)
-Route::middleware(['auth'])->group(function () {
-    // Ruta que muestra el panel del administrador
+// Rutas protegidas (requieren sesión de API activa)
+Route::middleware(['auth.api'])->group(function () {
+    // Panel del administrador
     Route::get('/admin', function () {
-        $user = Auth::user();
-
-        if (!$user || $user->role?->nombre !== 'Administrador') {
+        if (Session::get('user_rol') !== 'Administrador') {
             abort(403);
         }
-
         return view('admin.dashboard');
     })->name('admin.dashboard');
 
-    // Ruta que busca categorias segun el texto indicado
     Route::get('categorias/buscar', [AdminCategoriaController::class, 'buscar'])
         ->name('categorias.buscar');
-
-    // Ruta que busca productos segun el texto indicado
     Route::get('productos/buscar', [AdminProductoController::class, 'buscar'])
         ->name('productos.buscar');
 
-    // Rutas que listan, crean, editan, muestran y borran categorias
     Route::resource('categorias', AdminCategoriaController::class);
-    // Rutas que listan, crean, editan, muestran y borran productos
     Route::resource('productos', AdminProductoController::class);
-});
 
-Route::middleware(['auth'])->group(function () {
     Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
     Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
     Route::put('/carrito/update/{item}', [CarritoController::class, 'update'])->name('carrito.update');

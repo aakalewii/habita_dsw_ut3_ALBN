@@ -1,91 +1,83 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Str;
-use App\Models\Producto;
-use App\Models\Categoria;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Pagination\LengthAwarePaginator;
+use App\Services\ApiMueblesService;
 
 class ProductoController extends Controller
 {
+    protected ApiMueblesService $apiMuebles;
+
+    public function __construct(ApiMueblesService $apiMuebles)
+    {
+        $this->apiMuebles = $apiMuebles;
+    }
+
     public function galeria(Request $request)
     {
-        // Trae los productos y las categorías en una única consulta
-        $query = Producto::with('categorias');
+        $filtros = array_filter([
+            'search'      => $request->buscar,
+            'precio_min'  => $request->precio_min,
+            'precio_max'  => $request->precio_max,
+            'categoria_id'=> $request->categoria_id,
+            'color'       => $request->color_principal,
+            'sort'        => $request->orden,
+            'per_page'    => Cookie::get('preferencia_paginacion', 12),
+        ]);
 
-        // Búsqueda por nombre o descripción desde la misma barra
-        if ($request->filled('buscar')) {
-            $query->where(function ($searchQuery) use ($request) {
-                $searchQuery->where('nombre', 'like', '%' . $request->buscar . '%')
-                    ->orWhere('descripcion', 'like', '%' . $request->buscar . '%');
-            });
+        $baseUrl = $this->apiMuebles->baseUrl;
+
+        $responses = Http::pool(fn ($pool) => [
+            $pool->as('muebles')->get("{$baseUrl}/muebles", $filtros),
+            $pool->as('categorias')->get("{$baseUrl}/categorias"),
+        ]);
+
+        if (!$responses['muebles']->successful()) {
+            $listaProductos = new LengthAwarePaginator([], 0, 12, 1, ['path' => request()->url()]);
+            return view('User/principal', [
+                'listaProductos' => $listaProductos,
+                'categorias'     => collect(),
+                'colores'        => collect(),
+                'error'          => 'No se pudo conectar con el servicio de muebles.',
+            ]);
         }
 
-        // Filtro por rango de precios
-        // Si el usuario especifica un precio mínimo, se añaden a la consulta los productos con precio mayor o igual.
-        if ($request->filled('precio_min')) {
-            $query->where('precio', '>=', $request->precio_min);
-        }
-        // Si el usuario especifica un precio máximo, se añaden los productos con precio menor o igual.
-        if ($request->filled('precio_max')) {
-            $query->where('precio', '<=', $request->precio_max);
-        }
+        $json        = $responses['muebles']->json();
+        $items       = collect($json['data'] ?? $json);
+        $currentPage = $json['current_page'] ?? 1;
+        $total       = $json['total'] ?? $items->count();
+        $perPage     = $json['per_page'] ?? 12;
 
-        // Filtro por categoría
-        // Si el usuario selecciona una categoría, se añade un filtro a la consulta.
-        // Solo se mostrarán los productos que pertenezcan a esa categoría.
-        if ($request->filled('categoria_id')) {
-            $query->whereHas('categorias', function ($categoriaQuery) use ($request) {
-                $categoriaQuery->where('categorias.id', $request->categoria_id);
-            });
-        }
+        $listaProductos = new LengthAwarePaginator(
+            $items,
+            $total,
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
 
-        //Filtro por color
-        if ($request->filled('color_principal')) {
-            $query->where('color_principal', $request->color_principal);
-        }
-
-        // Orden por nombre (ascendente/descendente) y precio
-        if ($request->filled('orden')) {
-            if ($request->orden === 'nombre_asc') {
-                $query->orderBy('nombre', 'asc');
-            } elseif ($request->orden === 'nombre_desc') {
-                $query->orderBy('nombre', 'desc');
-            } elseif ($request->orden === 'precio_asc') {
-                $query->orderBy('precio', 'asc');
-            } elseif ($request->orden === 'precio_desc') {
-                $query->orderBy('precio', 'desc');
-            }
-        }
-
-        //Filtrar por destacado
-        if ($request->boolean('destacado')) {
-            $query->where('destacado', true);
-        }
-
-        // Obtener la preferencia de paginación del usuario desde las cookies (por defecto 12)
-        $itemsPorPagina = Cookie::get('preferencia_paginacion', 12);
-
-        // Asegurar que el valor sea válido (6, 12 o 24)
-        $itemsPorPagina = in_array($itemsPorPagina, [6, 12, 24]) ? $itemsPorPagina : 12;
-
-        // Ejecuta la consulta final con todos los filtros aplicados.
-        // Divide el resultado en páginas según la preferencia del usuario.
-        $listaProductos = $query->paginate($itemsPorPagina);
-        $categorias = Categoria::all();
-        $colores = Producto::query()
-            ->whereNotNull('color_principal')
-            ->select('color_principal')
-            ->distinct()
-            ->orderBy('color_principal')
-            ->pluck('color_principal');
+        $categorias = collect($responses['categorias']->successful()
+            ? $this->extractData($responses['categorias'])
+            : []);
+        $colores = $items->pluck('color')->filter()->unique()->sort()->values();
 
         return view('User/principal', compact('listaProductos', 'categorias', 'colores'));
     }
 
-    public function show(Producto $producto)
-{
-    return view('User.show', compact('producto'));
-}
+    public function show(int $id)
+    {
+        $respuesta = $this->apiMuebles->verMueble($id);
+
+        if (!$respuesta->successful()) {
+            abort(404);
+        }
+
+        $producto = $this->extractData($respuesta);
+
+        return view('User.show', compact('producto'));
+    }
 }
