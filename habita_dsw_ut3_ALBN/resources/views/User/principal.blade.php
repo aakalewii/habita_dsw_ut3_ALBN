@@ -89,12 +89,13 @@
 
                         <div class="d-flex align-items-center justify-content-center bg-light" style="height:220px;">
                             @php
-                                $imagen = is_array($producto->imagen_principal)
-                                    ? ($producto->imagen_principal[0] ?? null)
-                                    : $producto->imagen_principal;
+                                $imagen = $producto->imagen_url ?? null;
+                                if (!$imagen && is_array($producto->imagen_principal)) {
+                                    $imagen = $producto->imagen_principal[0] ?? null;
+                                }
                             @endphp
                             @if(!empty($imagen))
-                                <img src="{{ Storage::url($imagen) }}"
+                                <img src="{{ $imagen }}"
                                     alt="Imagen de {{ $producto->nombre }}" class="img-fluid h-100 w-100"
                                     style="object-fit: cover;">
                             @else
@@ -111,7 +112,7 @@
                         </div>
 
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
-                            <a href="{{ route('user.productos.show', $producto) }}"
+                            <a href="{{ route('user.productos.show', $producto->id) }}"
                                 class="btn btn-sm btn-outline-secondary">
                                 <i class="bi bi-eye"></i> Ver
                             </a>

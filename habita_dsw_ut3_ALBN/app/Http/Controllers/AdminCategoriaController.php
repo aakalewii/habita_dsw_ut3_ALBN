@@ -2,12 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use App\Services\MuebleApiService;
 
 class AdminCategoriaController extends Controller
 {
+    protected MuebleApiService $muebleApi;
+
+    public function __construct(MuebleApiService $muebleApi)
+    {
+        $this->muebleApi = $muebleApi;
+    }
+
     private function ensureAdmin(): void
     {
         if (!Auth::check() || Auth::user()->role?->nombre !== 'Administrador') {
@@ -15,81 +23,136 @@ class AdminCategoriaController extends Controller
         }
     }
 
-    // Muestra todas las categorias y permite filtrarlas por nombre
+    private function getToken(): string
+    {
+        return Session::get('api_token', '');
+    }
+
+    /**
+     * Muestra todas las categorías (desde la API de Muebles).
+     */
     public function index(Request $request)
     {
         $this->ensureAdmin();
+        $token = $this->getToken();
 
+        $listaCategorias = collect($this->muebleApi->listarCategorias($token));
+
+        // Filtrar por búsqueda localmente
         if ($request->filled('buscar')) {
-            $listaCategorias = Categoria::where('nombre', 'like', '%'.$request->buscar.'%')->get();
-        } else {
-            $listaCategorias = Categoria::all();
+            $buscar = strtolower($request->buscar);
+            $listaCategorias = $listaCategorias->filter(function ($cat) use ($buscar) {
+                return str_contains(strtolower($cat->nombre), $buscar);
+            });
         }
+
         return view('admin.categorias.index', compact('listaCategorias'));
     }
 
-    // Enseña el formulario para crear una categoria nueva
+    /**
+     * Formulario para crear una categoría nueva.
+     */
     public function create()
     {
         $this->ensureAdmin();
         return view('admin.categorias.create');
     }
 
-    // Guarda una categoria recien creada con sus datos
+    /**
+     * Guarda una categoría enviándola a la API de Muebles.
+     */
     public function store(Request $request)
     {
         $this->ensureAdmin();
+
         $request->validate([
-            'nombre' => 'required',
+            'nombre'      => 'required',
             'descripcion' => 'required',
         ]);
 
-        $categoria = new Categoria();
-        $categoria->nombre = $request->nombre;
-        $categoria->descripcion = $request->descripcion;
+        $token = $this->getToken();
+        $result = $this->muebleApi->crearCategoria([
+            'nombre'      => $request->nombre,
+            'descripcion' => $request->descripcion,
+        ], $token);
 
-        $resultado = $categoria->save();
-        return redirect()->route('categorias.index', compact('resultado'));
+        if ($result['status'] === 201) {
+            return redirect()->route('categorias.index')->with('success', 'Categoría creada correctamente.');
+        }
+
+        return back()->withErrors(['error' => $result['body']['message'] ?? 'Error al crear la categoría.'])->withInput();
     }
 
-    // Muestra una categoria concreta por su id
-    public function show(Categoria $categoria)
+    /**
+     * Muestra una categoría concreta (desde la API).
+     */
+    public function show(int $id)
     {
         $this->ensureAdmin();
+        $token = $this->getToken();
+        $categoria = $this->muebleApi->obtenerCategoria($id, $token);
+
+        if (!$categoria) abort(404);
+
         return view('admin.categorias.show', compact('categoria'));
     }
 
-    // Enseña el formulario para editar una categoria existente
-    public function edit(Categoria $categoria)
+    /**
+     * Formulario para editar una categoría existente.
+     */
+    public function edit(int $id)
     {
         $this->ensureAdmin();
-        return view('admin.categorias.edit', Compact('categoria'));
+        $token = $this->getToken();
+        $categoria = $this->muebleApi->obtenerCategoria($id, $token);
+
+        if (!$categoria) abort(404);
+
+        return view('admin.categorias.edit', compact('categoria'));
     }
 
-    // Actualiza la categoria indicada con los datos del formulario
-    public function update(Request $request, string $id)
+    /**
+     * Actualiza la categoría vía la API.
+     */
+    public function update(Request $request, int $id)
     {
         $this->ensureAdmin();
-        $categoria = Categoria::find($id);
-        $categoria->nombre = $request->nombre;
-        $categoria->descripcion = $request->descripcion;
+        $token = $this->getToken();
 
-        $resultado = $categoria->update();
+        $result = $this->muebleApi->actualizarCategoria($id, [
+            'nombre'      => $request->nombre,
+            'descripcion' => $request->descripcion,
+        ], $token);
 
-        return redirect()->route('categorias.index', Compact('resultado'));
+        if ($result['status'] === 200) {
+            return redirect()->route('categorias.index')->with('success', 'Categoría actualizada.');
+        }
+
+        return back()->withErrors(['error' => 'Error al actualizar la categoría.']);
     }
 
-    // Borra la categoria seleccionada
-    public function destroy(string $id)
+    /**
+     * Elimina la categoría vía la API.
+     */
+    public function destroy(int $id)
     {
         $this->ensureAdmin();
-        $categoria = Categoria::find($id);
-        $resultado = $categoria->delete();
-        return redirect()->route('categorias.index', Compact('resultado'));
+        $token = $this->getToken();
+
+        $result = $this->muebleApi->eliminarCategoria($id, $token);
+
+        if ($result['status'] === 200) {
+            return redirect()->route('categorias.index')->with('success', 'Categoría eliminada.');
+        }
+
+        return back()->withErrors(['error' => 'Error al eliminar la categoría.']);
     }
 
-    // Busca categorias usando el mismo filtro que el listado
-    public function buscar(Request $request){
+    /**
+     * Busca categorías.
+     */
+    public function buscar(Request $request)
+    {
         return $this->index($request);
     }
 }

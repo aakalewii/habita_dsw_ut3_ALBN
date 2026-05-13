@@ -62,7 +62,7 @@
                     @if (!empty($producto->imagen_principal))
                         <div class="d-flex flex-wrap gap-2 mt-2">
                             @foreach ($producto->imagen_principal as $ruta)
-                                <img src="{{ asset('storage/' . $ruta) }}" width="100" class="border p-1">
+                                <img src="{{ $ruta }}" width="100" class="border p-1">
                             @endforeach
                         </div>
                     @else

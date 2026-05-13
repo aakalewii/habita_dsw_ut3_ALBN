@@ -67,7 +67,7 @@
                         <div class="d-flex flex-wrap gap-3 mt-3">
                             @foreach ($producto->imagen_principal as $ruta)
                                 <div class="border p-2 text-center">
-                                    <img src="{{ asset('storage/' . $ruta) }}" width="100" class="d-block mb-2">
+                                    <img src="{{ $ruta }}" width="100" class="d-block mb-2">
                                 </div>
                             @endforeach
                         </div>

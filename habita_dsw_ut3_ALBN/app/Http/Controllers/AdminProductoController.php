@@ -2,14 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Categoria;
-use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Session;
+use App\Services\MuebleApiService;
 
 class AdminProductoController extends Controller
 {
+    protected MuebleApiService $muebleApi;
+
+    public function __construct(MuebleApiService $muebleApi)
+    {
+        $this->muebleApi = $muebleApi;
+    }
+
     private function ensureAdmin(): void
     {
         if (!Auth::check() || Auth::user()->role?->nombre !== 'Administrador') {
@@ -17,153 +23,172 @@ class AdminProductoController extends Controller
         }
     }
 
-    // Muestra todos los productos y permite buscarlos por nombre
+    private function getToken(): string
+    {
+        return Session::get('api_token', '');
+    }
+
+    /**
+     * Muestra todos los productos (desde la API de Muebles).
+     */
     public function index(Request $request)
     {
         $this->ensureAdmin();
+
+        $filtros = [];
         if ($request->filled('buscar')) {
-            $listaProductos = Producto::where('nombre', 'like', '%'.$request->buscar.'%')->get();
-        } else {
-            $listaProductos = Producto::all();
+            $filtros['buscar'] = $request->buscar;
         }
+
+        $token = $this->getToken();
+
+        // Obtener muebles desde la API
+        $paginator = $this->muebleApi->listarMuebles($filtros, $token);
+        $listaProductos = $paginator->items();
+
         return view('admin.productos.index', compact('listaProductos'));
     }
 
-    // Enseña el formulario para crear un producto nuevo
+    /**
+     * Formulario para crear un producto nuevo.
+     * Las categorías se obtienen de la API de Muebles.
+     */
     public function create()
     {
         $this->ensureAdmin();
-        $listaCategorias = Categoria::all();
-
+        $token = $this->getToken();
+        $listaCategorias = collect($this->muebleApi->listarCategorias($token));
         return view('admin.productos.create', compact('listaCategorias'));
     }
 
-    // Guarda un producto nuevo con sus datos e imagenes
+    /**
+     * Guarda un producto nuevo enviándolo a la API de Muebles.
+     */
     public function store(Request $request)
     {
         $this->ensureAdmin();
+
         $request->validate([
-            'nombre' => 'required',
-            'descripcion' => 'required',
-            'precio' => 'required',
-            'stock' => 'required',
-            'materiales' => 'required',
-            'dimensiones' => 'required',
-            'color_principal'=> 'required',
-            'imagen_principal'=> 'nullable|array',
-            'imagen_principal.*'=> 'image|max:2048',
-            'destacado' => 'required',
-            'categoria_id'=> 'nullable|array'
+            'nombre'          => 'required',
+            'descripcion'     => 'required',
+            'precio'          => 'required|numeric',
+            'stock'           => 'required|integer',
+            'color_principal' => 'nullable|string',
+            'materiales'      => 'nullable|string',
+            'categoria_id'    => 'nullable|array',
         ]);
 
-        $producto = new Producto();
-        $producto->nombre = $request->nombre;
-        $producto->descripcion = $request->descripcion;
-        $producto->precio = $request->precio;
-        $producto->stock = $request->stock;
-        $producto->materiales = $request->materiales;
-        $producto->dimensiones = $request->dimensiones;
-        $producto->color_principal = $request->color_principal;
-        $producto->destacado = $request->destacado;
+        $token = $this->getToken();
 
-        if ($request->hasFile('imagen_principal')) {
-            $paths = [];
-            foreach ($request->file('imagen_principal') as $file) {
-                $paths[] = $file->store('productos', 'public');
-            }
-            $producto->imagen_principal = $paths;
+        // Mapear campos del formulario UT3 a los campos de la API de Muebles
+        $datos = [
+            'nombre'       => $request->nombre,
+            'descripcion'  => $request->descripcion,
+            'precio'       => $request->precio,
+            'stock'        => $request->stock,
+            'color'        => $request->color_principal,
+            'material'     => $request->materiales,
+            'categoria_id' => $request->categoria_id[0] ?? 1, // La API usa una sola categoría
+        ];
+
+        $result = $this->muebleApi->crearMueble($datos, $token);
+
+        if ($result['status'] === 201) {
+            return redirect()->route('productos.index')->with('success', 'Producto creado correctamente.');
         }
 
-        $producto->save();
-        $resultado = $producto->categorias()->sync($request->categoria_id);
-
-        return redirect()->route('productos.index', compact('resultado'));
-
+        return back()->withErrors(['error' => $result['body']['message'] ?? 'Error al crear el producto.'])->withInput();
     }
 
-    // Muestra un producto concreto por su id
+    /**
+     * Muestra un producto concreto (desde la API).
+     */
     public function show(int $id)
     {
         $this->ensureAdmin();
-        $producto = Producto::find($id);
+        $token = $this->getToken();
+        $producto = $this->muebleApi->obtenerMueble($id, $token);
+
+        if (!$producto) abort(404);
+
         return view('admin.productos.show', compact('producto'));
     }
 
-    // Enseña el formulario para editar un producto existente
+    /**
+     * Formulario para editar un producto existente.
+     */
     public function edit(int $id)
     {
         $this->ensureAdmin();
-        $producto = Producto::find($id);
-        $listaCategorias = Categoria::all();
-        return view('admin.productos.edit', compact('producto'), compact('listaCategorias'));
+        $token = $this->getToken();
+        $producto = $this->muebleApi->obtenerMueble($id, $token);
+        $listaCategorias = collect($this->muebleApi->listarCategorias($token));
+
+        if (!$producto) abort(404);
+
+        return view('admin.productos.edit', compact('producto', 'listaCategorias'));
     }
 
-    // Actualiza los datos del producto indicado
-    public function update(Request $request, string $id)
+    /**
+     * Actualiza el producto enviando los cambios a la API.
+     */
+    public function update(Request $request, int $id)
     {
         $this->ensureAdmin();
+
         $request->validate([
-            'nombre' => 'required',
-            'descripcion' => 'required',
-            'precio' => 'required',
-            'stock'  => 'required',
-            'materiales' => 'required',
-            'dimensiones' => 'required',
-            'color_principal'=> 'required',
-            'imagen_principal'=> 'nullable|array',
-            'imagen_principal.*'=> 'image|max:2048',
-            'destacado' => 'required',
-            'categoria_id'=> 'nullable|array'
+            'nombre'          => 'required',
+            'descripcion'     => 'required',
+            'precio'          => 'required|numeric',
+            'stock'           => 'required|integer',
+            'color_principal' => 'nullable|string',
+            'materiales'      => 'nullable|string',
+            'categoria_id'    => 'nullable|array',
         ]);
 
-        $producto= Producto::find($id);
-        $imagenesActuales = $producto->imagen_principal ?? [];
-        $producto->nombre = $request->nombre;
-        $producto->descripcion = $request->descripcion;
-        $producto->precio = $request->precio;
-        $producto->stock = $request->stock;
-        $producto->materiales = $request->materiales;
-        $producto->dimensiones = $request->dimensiones;
-        $producto->color_principal = $request->color_principal;
-        $producto->destacado = $request->destacado;
+        $token = $this->getToken();
 
-        if ($request->boolean('eliminar_imagenes')) {
-            foreach ($imagenesActuales as $rutaBorrar) {
-                Storage::disk('public')->delete($rutaBorrar);
-            }
-            $imagenesFiltradas = [];
-        } else {
-            $imagenesFiltradas = $imagenesActuales;
+        $datos = [
+            'nombre'       => $request->nombre,
+            'descripcion'  => $request->descripcion,
+            'precio'       => $request->precio,
+            'stock'        => $request->stock,
+            'color'        => $request->color_principal,
+            'material'     => $request->materiales,
+            'categoria_id' => $request->categoria_id[0] ?? 1,
+        ];
+
+        $result = $this->muebleApi->actualizarMueble($id, $datos, $token);
+
+        if ($result['status'] === 200) {
+            return redirect()->route('productos.index')->with('success', 'Producto actualizado.');
         }
 
-        if ($request->hasFile('imagen_principal')) {
-            foreach ($request->file('imagen_principal') as $file) {
-                $imagenesFiltradas[] = $file->store('productos', 'public');
-            }
-        }
-
-        $producto->imagen_principal = $imagenesFiltradas;
-
-        $producto->update();
-        $resultado = $producto->categorias()->sync($request->categoria_id);
-
-        return redirect()->route('productos.index', compact('resultado'));
-
+        return back()->withErrors(['error' => $result['body']['message'] ?? 'Error al actualizar.'])->withInput();
     }
 
-    // Borra el producto seleccionado y limpia sus categorias
+    /**
+     * Elimina un producto vía la API.
+     */
     public function destroy(int $id)
     {
         $this->ensureAdmin();
-        $producto= Producto::find($id);
-        $producto->categorias()->sync([]);
+        $token = $this->getToken();
 
-        $resultado = $producto->delete();
-        return redirect()->route('productos.index', Compact('resultado'));
+        $result = $this->muebleApi->eliminarMueble($id, $token);
+
+        if ($result['status'] === 200) {
+            return redirect()->route('productos.index')->with('success', 'Producto eliminado.');
+        }
+
+        return back()->withErrors(['error' => 'Error al eliminar el producto.']);
     }
 
-    // Busca productos usando el mismo filtro que el listado
-    public function buscar(Request $request){
+    /**
+     * Busca productos usando el mismo filtro que el listado.
+     */
+    public function buscar(Request $request)
+    {
         return $this->index($request);
     }
 }

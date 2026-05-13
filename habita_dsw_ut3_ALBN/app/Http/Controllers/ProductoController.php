@@ -1,91 +1,79 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Str;
-use App\Models\Producto;
-use App\Models\Categoria;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cookie;
+use Illuminate\Support\Facades\Session;
+use App\Services\MuebleApiService;
 
 class ProductoController extends Controller
 {
+    protected MuebleApiService $muebleApi;
+
+    public function __construct(MuebleApiService $muebleApi)
+    {
+        $this->muebleApi = $muebleApi;
+    }
+
+    /**
+     * Galería pública de productos.
+     * Consume la API de Muebles (puerto 8002) en lugar de la BD local.
+     */
     public function galeria(Request $request)
     {
-        // Trae los productos y las categorías en una única consulta
-        $query = Producto::with('categorias');
+        // Construir filtros para enviar a la API de Muebles
+        $filtros = [];
 
-        // Búsqueda por nombre o descripción desde la misma barra
         if ($request->filled('buscar')) {
-            $query->where(function ($searchQuery) use ($request) {
-                $searchQuery->where('nombre', 'like', '%' . $request->buscar . '%')
-                    ->orWhere('descripcion', 'like', '%' . $request->buscar . '%');
-            });
+            $filtros['buscar'] = $request->buscar;
         }
-
-        // Filtro por rango de precios
-        // Si el usuario especifica un precio mínimo, se añaden a la consulta los productos con precio mayor o igual.
         if ($request->filled('precio_min')) {
-            $query->where('precio', '>=', $request->precio_min);
+            $filtros['precio_min'] = $request->precio_min;
         }
-        // Si el usuario especifica un precio máximo, se añaden los productos con precio menor o igual.
         if ($request->filled('precio_max')) {
-            $query->where('precio', '<=', $request->precio_max);
+            $filtros['precio_max'] = $request->precio_max;
         }
-
-        // Filtro por categoría
-        // Si el usuario selecciona una categoría, se añade un filtro a la consulta.
-        // Solo se mostrarán los productos que pertenezcan a esa categoría.
         if ($request->filled('categoria_id')) {
-            $query->whereHas('categorias', function ($categoriaQuery) use ($request) {
-                $categoriaQuery->where('categorias.id', $request->categoria_id);
-            });
+            $filtros['categoria'] = $request->categoria_id;
         }
-
-        //Filtro por color
         if ($request->filled('color_principal')) {
-            $query->where('color_principal', $request->color_principal);
+            $filtros['color'] = $request->color_principal;
         }
-
-        // Orden por nombre (ascendente/descendente) y precio
         if ($request->filled('orden')) {
-            if ($request->orden === 'nombre_asc') {
-                $query->orderBy('nombre', 'asc');
-            } elseif ($request->orden === 'nombre_desc') {
-                $query->orderBy('nombre', 'desc');
-            } elseif ($request->orden === 'precio_asc') {
-                $query->orderBy('precio', 'asc');
-            } elseif ($request->orden === 'precio_desc') {
-                $query->orderBy('precio', 'desc');
-            }
+            $filtros['orden'] = $request->orden;
+        }
+        if ($request->filled('page')) {
+            $filtros['page'] = $request->page;
         }
 
-        //Filtrar por destacado
-        if ($request->boolean('destacado')) {
-            $query->where('destacado', true);
-        }
+        $token = Session::get('api_token');
 
-        // Obtener la preferencia de paginación del usuario desde las cookies (por defecto 12)
-        $itemsPorPagina = Cookie::get('preferencia_paginacion', 12);
+        // Obtener muebles desde la API (devuelve un LengthAwarePaginator)
+        $listaProductos = $this->muebleApi->listarMuebles($filtros, $token);
 
-        // Asegurar que el valor sea válido (6, 12 o 24)
-        $itemsPorPagina = in_array($itemsPorPagina, [6, 12, 24]) ? $itemsPorPagina : 12;
+        // Obtener categorías desde la API para el filtro del formulario
+        $categorias = collect($this->muebleApi->listarCategorias($token));
 
-        // Ejecuta la consulta final con todos los filtros aplicados.
-        // Divide el resultado en páginas según la preferencia del usuario.
-        $listaProductos = $query->paginate($itemsPorPagina);
-        $categorias = Categoria::all();
-        $colores = Producto::query()
-            ->whereNotNull('color_principal')
-            ->select('color_principal')
-            ->distinct()
-            ->orderBy('color_principal')
-            ->pluck('color_principal');
+        // Obtener colores únicos de los muebles de la página actual
+        $colores = $listaProductos->pluck('color_principal')->filter()->unique()->sort()->values();
 
         return view('User/principal', compact('listaProductos', 'categorias', 'colores'));
     }
 
-    public function show(Producto $producto)
-{
-    return view('User.show', compact('producto'));
-}
+    /**
+     * Detalle de un producto.
+     * Consume la API de Muebles para obtener un mueble específico.
+     */
+    public function show($id)
+    {
+        $token = Session::get('api_token');
+        $producto = $this->muebleApi->obtenerMueble((int) $id, $token);
+
+        if (!$producto) {
+            abort(404, 'Producto no encontrado');
+        }
+
+        return view('User.show', compact('producto'));
+    }
 }

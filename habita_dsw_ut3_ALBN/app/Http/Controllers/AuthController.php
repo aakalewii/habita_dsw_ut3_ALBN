@@ -4,17 +4,22 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Role;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Session;
-use Illuminate\Support\Facades\RateLimiter;
-use Illuminate\Support\Str;
-use Illuminate\Validation\ValidationException;
+use App\Services\UsuarioApiService;
 
 class AuthController extends Controller
 {
-    // Login y registro de usuario utilizando la capa intermedia Auth de Laravel.
+    protected UsuarioApiService $usuarioApi;
+
+    public function __construct(UsuarioApiService $usuarioApi)
+    {
+        $this->usuarioApi = $usuarioApi;
+    }
+
     /**
      * Formulario de login
      */
@@ -24,44 +29,51 @@ class AuthController extends Controller
     }
 
     /**
-     * Autenticación del usuario
+     * Autenticación del usuario llamando a la API de Usuarios.
+     * 1. Envía credenciales a la API de Usuarios (puerto 8001)
+     * 2. Si es correcto, recibe un token + datos del usuario
+     * 3. Crea/actualiza un usuario local para que Auth:: funcione
+     * 4. Guarda el token en la sesión para usarlo con la API de Muebles
      */
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required','email'],
-            'password' => ['required','string']
+            'email'    => ['required', 'email'],
+            'password' => ['required', 'string'],
         ]);
 
-        // Crear una clave única para el rate limiter basada en el email y la IP
-        $throttleKey = Str::lower($request->input('email')) . '|' . $request->ip();
+        // Llamar a la API de Usuarios
+        $result = $this->usuarioApi->login($credentials['email'], $credentials['password']);
 
-        // Verificar si el usuario está bloqueado por demasiados intentos
-        if (RateLimiter::tooManyAttempts($throttleKey, 3)) {
-            $seconds = RateLimiter::availableIn($throttleKey);
+        if ($result['status'] === 200 && !empty($result['body']['token'])) {
+            $apiData = $result['body'];
+            $token = $apiData['token'];
+            $userData = $apiData['user'] ?? [];
+            $abilities = $apiData['abilities'] ?? [];
 
-            throw ValidationException::withMessages([
-                'email' => 'Demasiados intentos de inicio de sesión. Por favor, intenta de nuevo en ' . ceil($seconds / 60) . ' minutos.',
-            ]);
-        }
+            // Crear o actualizar usuario local para que Auth:: funcione
+            $user = User::updateOrCreate(
+                ['email' => $userData['email'] ?? $credentials['email']],
+                [
+                    'name'      => $userData['name'] ?? 'Usuario',
+                    'apellidos' => $userData['apellidos'] ?? '',
+                    'password'  => Hash::make($credentials['password']),
+                    'role_id'   => $this->resolveRoleId($abilities),
+                ]
+            );
 
-        // Login propio de la capa Auth (Facade de Laravel).
-        if (Auth::attempt($credentials)) {
+            // Login local (para que el middleware 'auth' funcione)
+            Auth::login($user);
             $request->session()->regenerate();
 
-            // Limpiar los intentos fallidos si el login es exitoso
-            RateLimiter::clear($throttleKey);
-
-            // Guardar datos en sesión (REQUISITO 2.3)
-            $user = Auth::user();
-
-            // Establecer la sesión de autorización
+            // Guardar el token de la API en la sesión
+            Session::put('api_token', $token);
+            Session::put('api_abilities', $abilities);
             Session::put('autorizacion_usuario', true);
             Session::put('usuario_id', $user->id);
             Session::put('email', $user->email);
 
-            // Verificar si el usuario tiene rol de Administrador y redirigir al panel de administración
-            // En caso contrario, redirigir a la galería de productos (vista de cliente)
+            // Redirigir según el rol
             if ($user->role?->nombre === 'Administrador') {
                 return redirect()->route('admin.dashboard')->with('success', 'Bienvenido, ' . $user->name);
             }
@@ -69,11 +81,9 @@ class AuthController extends Controller
             return redirect()->route('productos.galeria')->with('success', 'Bienvenido, ' . $user->name);
         }
 
-        // Incrementar el contador de intentos fallidos
-        RateLimiter::hit($throttleKey, 300); // 300 segundos = 5 minutos
-
+        // Login fallido
         return back()->withErrors([
-            'email' => 'Las credenciales no son correctas.',
+            'email' => $result['body']['message'] ?? 'Las credenciales no son correctas.',
         ])->onlyInput('email');
     }
 
@@ -86,63 +96,90 @@ class AuthController extends Controller
     }
 
     /**
-     * Registro de usuario
+     * Registro de usuario llamando a la API de Usuarios.
      */
     public function register(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255',
+            'name'      => 'required|string|max:255',
             'apellidos' => 'required|string|max:255',
-            'email' => 'required|email|unique:users',
-            'password' => 'required|string|min:6|confirmed',
+            'email'     => 'required|email|unique:users',
+            'password'  => 'required|string|min:6|confirmed',
         ]);
 
-        // Obtener el rol de "Cliente" (los usuarios registrados desde la web siempre son clientes)
-        $rolCliente = Role::where('nombre', 'Cliente')->first();
-
-        // Utilizando el propio modelo que viene con Laravel por defecto.
-        $user = User::create([
-            'name' => $request->name,
-            'apellidos' => $request->apellidos,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'role_id' => $rolCliente->id, // Asignar automáticamente el rol de Cliente
+        // Llamar a la API de Usuarios para registrar
+        $result = $this->usuarioApi->register([
+            'name'                  => $request->name,
+            'apellidos'             => $request->apellidos,
+            'email'                 => $request->email,
+            'password'              => $request->password,
+            'password_confirmation' => $request->password_confirmation,
         ]);
 
-        // Login de la capa Auth (Facade de Laravel).
-        Auth::login($user);
+        if ($result['status'] === 201 || $result['status'] === 200) {
+            $apiData = $result['body'];
+            $token = $apiData['token'] ?? null;
+            $userData = $apiData['user'] ?? [];
 
-        // Crear datos de sesión estructurados
-        $datosSesion = [
-            'usuario_id' => $user->id,
-            'email' => $user->email,
-            'name' => $user->name,
-            'role' => $rolCliente->nombre,
-            'sesionId' => Str::uuid()->toString(),
-            'login_time' => now()->toDateTimeString()
-        ];
+            // Crear usuario local
+            $rolCliente = Role::where('nombre', 'Cliente')->first();
+            $user = User::create([
+                'name'      => $request->name,
+                'apellidos' => $request->apellidos ?? '',
+                'email'     => $request->email,
+                'password'  => Hash::make($request->password),
+                'role_id'   => $rolCliente?->id,
+            ]);
 
-        // Guardar usuario en sesión
-        Session::put('usuario', json_encode($datosSesion));
-        Session::put('autorizacion_usuario', true);
-        Session::put('usuario_id', $user->id);
-        Session::put('email', $user->email);
-        Session::put('sesionId', $datosSesion['sesionId']);
-        Session::regenerate();
+            Auth::login($user);
 
-        return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
+            // Guardar token en sesión
+            if ($token) {
+                Session::put('api_token', $token);
+            }
+            Session::put('autorizacion_usuario', true);
+            Session::put('usuario_id', $user->id);
+            Session::put('email', $user->email);
+            Session::regenerate();
+
+            return redirect()->route('productos.galeria')->with('success', 'Registro completado correctamente.');
+        }
+
+        return back()->withErrors([
+            'email' => $result['body']['message'] ?? 'Error al registrar el usuario.',
+        ])->withInput();
     }
 
     /**
-     * Cierre de sesión
+     * Cierre de sesión: llama a la API de Usuarios para invalidar el token.
      */
     public function logout(Request $request)
     {
-        // Cierre de sesión en la capa Auth.
+        // Intentar cerrar sesión en la API de Usuarios
+        $token = Session::get('api_token');
+        if ($token) {
+            $this->usuarioApi->logout($token);
+        }
+
+        // Cierre de sesión local
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        // Retorna a la vista de login
         return redirect()->route('login');
+    }
+
+    /**
+     * Determina el role_id local basándose en las abilities del token.
+     */
+    private function resolveRoleId(array $abilities): ?int
+    {
+        if (in_array('admin.panel', $abilities)) {
+            $role = Role::where('nombre', 'Administrador')->first();
+        } elseif (in_array('muebles.crear', $abilities)) {
+            $role = Role::where('nombre', 'Gestor')->orWhere('nombre', 'Administrador')->first();
+        } else {
+            $role = Role::where('nombre', 'Cliente')->first();
+        }
+        return $role?->id;
     }
 }

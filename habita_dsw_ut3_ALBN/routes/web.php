@@ -13,7 +13,7 @@ use App\Http\Controllers\PreferenciasController;
 
 // Galería de productos (acceso público sin login)
 Route::get('/', [ProductoController::class, 'galeria'])->name('productos.galeria');
-Route::get('/catalogo/{producto}', [ProductoController::class, 'show'])->name('user.productos.show');
+Route::get('/catalogo/{id}', [ProductoController::class, 'show'])->name('user.productos.show');
 
 // Login de usuario
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');

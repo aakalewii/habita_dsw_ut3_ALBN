@@ -49,7 +49,7 @@
                         <tr>
                             <td>{{ $producto->id }}</td>
                             <td>
-                                <a href="{{ route('productos.show', $producto) }}" class="text-decoration-none">
+                                <a href="{{ route('productos.show', $producto->id) }}" class="text-decoration-none">
                                     {{ $producto->nombre }}
                                 </a>
                             </td>
@@ -66,12 +66,12 @@
                             <td>{{ $producto->color_principal }}</td>
                             <td>{{ $producto->destacado ? 'Sí' : 'No' }}</td>
                             <td class="col-1 text-center">
-                                <a href="{{ route('productos.edit', $producto) }}" class="btn btn-primary btn-sm">
+                                <a href="{{ route('productos.edit', $producto->id) }}" class="btn btn-primary btn-sm">
                                     Editar
                                 </a>
                             </td>
                             <td class="col-1 text-center">
-                                <form action="{{ route('productos.destroy', $producto) }}" method="POST"
+                                <form action="{{ route('productos.destroy', $producto->id) }}" method="POST"
                                     onsubmit="return confirm('¿Estás seguro de eliminar este producto?');">
                                     @csrf
                                     @method('DELETE')
