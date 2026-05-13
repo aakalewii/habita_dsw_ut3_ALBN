@@ -38,19 +38,8 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        @php
-                                            $imagen = is_array($item->producto->imagen_principal)
-                                                ? ($item->producto->imagen_principal[0] ?? null)
-                                                : $item->producto->imagen_principal;
-                                        @endphp
-                                        @if($imagen)
-                                            <img src="{{ asset('storage/' . $imagen) }}" alt="{{ $item->producto->nombre }}"
-                                                class="img-thumbnail me-3" style="width: 60px; height: 60px; object-fit: cover;">
-                                        @endif
-                                        <div>
-                                            <h5 class="mb-0">{{ $item->producto->nombre }}</h5>
-                                            <small class="text-muted">Stock disponible: {{ $item->producto->stock }}</small>
-                                        </div>
+                                        <i class="bi bi-box-seam me-3 fs-3 text-muted"></i>
+                                        <h5 class="mb-0">{{ $item->nombre }}</h5>
                                     </div>
                                 </td>
 

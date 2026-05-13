@@ -10,7 +10,7 @@ class CarritoItem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['carrito_id', 'producto_id', 'cantidad', 'precio_unitario'];
+    protected $fillable = ['carrito_id', 'producto_id', 'nombre', 'cantidad', 'precio_unitario'];
 
     public function carrito(): BelongsTo
     {

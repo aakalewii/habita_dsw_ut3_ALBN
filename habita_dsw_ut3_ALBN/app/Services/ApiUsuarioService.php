@@ -11,12 +11,17 @@ class ApiUsuarioService
 
     public function __construct()
     {
-        $this->baseUrl = env('API_USUARIOS_URL');
+        $this->baseUrl = config('services.api_usuarios.url');
+    }
+
+    private function http()
+    {
+        return Http::acceptJson();
     }
 
     public function login($email, $password)
     {
-        return Http::post("{$this->baseUrl}/login", [
+        return $this->http()->post("{$this->baseUrl}/login", [
             'email' => $email,
             'password' => $password,
         ]);
@@ -24,20 +29,16 @@ class ApiUsuarioService
 
     public function registrar($data)
     {
-        return Http::post("{$this->baseUrl}/registrar", $data);
+        return $this->http()->post("{$this->baseUrl}/registrar", $data);
     }
 
     public function perfil()
     {
-        $token = Session::get('api_token');
-        
-        return Http::withToken($token)->get("{$this->baseUrl}/perfil");
+        return $this->http()->withToken(Session::get('api_token'))->get("{$this->baseUrl}/perfil");
     }
 
     public function logout()
     {
-        $token = Session::get('api_token');
-        
-        return Http::withToken($token)->post("{$this->baseUrl}/logout");
+        return $this->http()->withToken(Session::get('api_token'))->post("{$this->baseUrl}/logout");
     }
 }

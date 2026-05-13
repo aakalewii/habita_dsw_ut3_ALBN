@@ -39,4 +39,8 @@ return [
         'url' => env('API_MUEBLES_URL'),
     ],
 
+    'api_usuarios' => [
+        'url' => env('API_USUARIOS_URL'),
+    ],
+
 ];

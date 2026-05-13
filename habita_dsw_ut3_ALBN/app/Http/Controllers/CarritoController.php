@@ -161,19 +161,9 @@ class CarritoController extends Controller
             return back()->with('error', 'El carrito está vacío.');
         }
 
-        // REQUISITO: "Al comprar el carrito, no eliminamos la relación de productos de la base de datos. 
-        // Dejamos almacenados los datos y vaciamos el carrito actual del usuario."
-
-        // Para cumplir esto, marcamos el carrito actual como 'completado'
-        // Esto preserva los datos en la BD pero "vacía" el carrito activo para el usuario (ya que getCarritoActivo buscará uno 'activo')
-
         $carrito->estado = 'completado';
         $carrito->save();
 
-        // Opcional: Restar stock real de los productos (si se requiere persistencia de stock real)
-        // El requisito dice "Validación de stock", y "Si no hay stock: mostrar error".
-        // No especifica explícitamente descontar del stock de la tabla productos al comprar, 
-        // pero es lo lógico en un sistema real. Lo haré para consistencia.
         foreach ($carrito->items as $item) {
             $producto = $item->producto;
             $producto->stock -= $item->cantidad;
