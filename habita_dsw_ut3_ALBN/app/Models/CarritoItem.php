@@ -16,9 +16,4 @@ class CarritoItem extends Model
     {
         return $this->belongsTo(Carrito::class);
     }
-
-    public function producto(): BelongsTo
-    {
-        return $this->belongsTo(Producto::class);
-    }
 }

@@ -20,7 +20,7 @@ class AdminProductoController extends AdminBaseController
     {
         $this->ensureAdmin();
 
-        $filtros = $request->filled('buscar') ? ['search' => $request->buscar] : [];
+        $filtros = $request->filled('buscar') ? ['buscar' => $request->buscar] : [];
         $respuesta = $this->apiMuebles->listarMuebles($filtros);
         $listaProductos = collect($respuesta->successful() ? $this->extractData($respuesta) : []);
 
@@ -94,8 +94,8 @@ class AdminProductoController extends AdminBaseController
         $this->ensureAdmin();
 
         $responses = Http::pool(fn ($pool) => [
-            $pool->as('producto')->get("{$this->apiMuebles->baseUrl}/muebles/{$id}"),
-            $pool->as('categorias')->get("{$this->apiMuebles->baseUrl}/categorias"),
+            $pool->as('producto')->acceptJson()->get("{$this->apiMuebles->baseUrl}/muebles/{$id}"),
+            $pool->as('categorias')->acceptJson()->get("{$this->apiMuebles->baseUrl}/categorias"),
         ]);
 
         if (!$responses['producto']->successful()) {

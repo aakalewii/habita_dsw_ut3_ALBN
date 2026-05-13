@@ -5,44 +5,55 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Carrito;
 use App\Models\CarritoItem;
-use App\Models\Producto;
+use App\Services\ApiMueblesService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Session;
 
 class CarritoController extends Controller
 {
+    public function __construct(
+        protected ApiMueblesService $apiMuebles
+    ) {
+    }
+
+    /**
+     * Datos del mueble en la API externa (id del catálogo remoto).
+     */
+    private function muebleRemoto(int $muebleId): ?array
+    {
+        $respuesta = $this->apiMuebles->verMueble($muebleId);
+        if (!$respuesta->successful()) {
+            return null;
+        }
+
+        return $this->extractData($respuesta);
+    }
+
     /**
      * Obtiene o crea el carrito activo para la sesión actual.
      */
-    private function getCarritoActivo()
+    private function getCarritoActivo(): Carrito
     {
         $sessionId = Session::getId();
-        $userId = Auth::id();
+        $userId = Auth::id() ?? Session::get('usuario_id');
 
-        // 1. Buscar carrito de la sesión actual
         $carrito = Carrito::where('sesionId', $sessionId)
             ->activo()
             ->first();
 
-        // 2. Lógica de recuperación de carrito de usuario
         if ($userId) {
-            // Buscar si el usuario tiene OTRO carrito activo en la BD (ej. de una sesión anterior o seeded)
             $oldCart = Carrito::where('user_id', $userId)
-                ->where('id', '!=', $carrito?->id) // Que no sea el que acabamos de encontrar
+                ->where('id', '!=', $carrito?->id)
                 ->activo()
                 ->latest()
                 ->first();
 
             if ($oldCart) {
-                // Si encontramos un carrito antiguo del usuario...
-                // Y el carrito actual de la sesión no existe O está vacío...
                 if (!$carrito || $carrito->items()->count() == 0) {
-                    // ... Descartamos el carrito vacío actual (si existe)
                     if ($carrito) {
                         $carrito->delete();
                     }
 
-                    // ... Y recuperamos el antiguo asignándole la sesión actual
                     $carrito = $oldCart;
                     $carrito->sesionId = $sessionId;
                     $carrito->save();
@@ -50,20 +61,16 @@ class CarritoController extends Controller
             }
         }
 
-        // 3. Si todavía no tenemos carrito, crear uno nuevo
         if (!$carrito) {
             $carrito = Carrito::create([
                 'sesionId' => $sessionId,
                 'user_id' => $userId,
                 'estado' => 'activo',
-                'total' => 0
+                'total' => 0,
             ]);
-        } else {
-            // Si el carrito existe y es anónimo, asignarlo al usuario logueado
-            if ($userId && !$carrito->user_id) {
-                $carrito->user_id = $userId;
-                $carrito->save();
-            }
+        } elseif ($userId && !$carrito->user_id) {
+            $carrito->user_id = $userId;
+            $carrito->save();
         }
 
         return $carrito;
@@ -72,63 +79,76 @@ class CarritoController extends Controller
     public function index()
     {
         $carrito = $this->getCarritoActivo();
-        $items = $carrito->items()->with('producto')->get();
+        $items = $carrito->items()->get();
 
         $subtotal = $items->sum(function ($item) {
             return $item->precio_unitario * $item->cantidad;
         });
 
-        $impuestos = $subtotal * 0.10; // 10% impuestos simulados
+        $impuestos = $subtotal * 0.10;
         $total = $subtotal + $impuestos;
 
-        // Actualizamos el total en la BD
         $carrito->total = $total;
         $carrito->save();
 
         return view('carrito.index', compact('carrito', 'items', 'subtotal', 'impuestos', 'total'));
     }
 
-    public function add(Request $request, $productoId)
+    public function add(Request $request, int $productoId)
     {
-        $producto = Producto::findOrFail($productoId);
-        $carrito = $this->getCarritoActivo();
-        $cantidadAAnadir = $request->input('cantidad', 1);
+        $mueble = $this->muebleRemoto($productoId);
+        if (!$mueble) {
+            return back()->with('error', 'No se encontró el mueble en el catálogo.');
+        }
 
-        // Verificar si ya existe en el carrito
+        $carrito = $this->getCarritoActivo();
+        $cantidadAAnadir = (int) $request->input('cantidad', 1);
+        if ($cantidadAAnadir < 1) {
+            $cantidadAAnadir = 1;
+        }
+
+        $stock = (int) ($mueble['stock'] ?? 0);
         $item = $carrito->items()->where('producto_id', $productoId)->first();
-        $cantidadActualEnCarrito = $item ? $item->cantidad : 0;
+        $cantidadActualEnCarrito = $item ? (int) $item->cantidad : 0;
         $nuevaCantidadTotal = $cantidadActualEnCarrito + $cantidadAAnadir;
 
-        // Validación de Stock
-        if ($nuevaCantidadTotal > $producto->stock) {
-            return back()->with('error', 'No hay suficiente stock. Stock disponible: ' . $producto->stock);
+        if ($nuevaCantidadTotal > $stock) {
+            return back()->with('error', 'No hay suficiente stock. Stock disponible: ' . $stock);
         }
 
         if ($item) {
             $item->cantidad = $nuevaCantidadTotal;
+            $item->nombre = $mueble['nombre'] ?? $item->nombre;
+            $item->precio_unitario = $mueble['precio'] ?? $item->precio_unitario;
             $item->save();
         } else {
             $carrito->items()->create([
                 'producto_id' => $productoId,
+                'nombre' => $mueble['nombre'] ?? 'Mueble #' . $productoId,
                 'cantidad' => $cantidadAAnadir,
-                'precio_unitario' => $producto->precio,
+                'precio_unitario' => $mueble['precio'] ?? 0,
             ]);
         }
 
         return redirect()->route('carrito.index')->with('success', 'Producto añadido al carrito.');
     }
 
-    public function update(Request $request, $itemId)
+    public function update(Request $request, int $itemId)
     {
         $request->validate(['cantidad' => 'required|integer|min:1']);
-        $cantidadNueva = $request->input('cantidad');
+        $cantidadNueva = (int) $request->input('cantidad');
 
-        $item = CarritoItem::findOrFail($itemId);
-        $producto = $item->producto;
+        $carrito = $this->getCarritoActivo();
+        $item = $carrito->items()->where('id', $itemId)->firstOrFail();
 
-        // Validación de Stock
-        if ($cantidadNueva > $producto->stock) {
-            return back()->with('error', 'No hay suficiente stock. Máximo: ' . $producto->stock);
+        $mueble = $this->muebleRemoto((int) $item->producto_id);
+        if (!$mueble) {
+            return back()->with('error', 'No se pudo comprobar el stock del mueble.');
+        }
+
+        $stock = (int) ($mueble['stock'] ?? 0);
+        if ($cantidadNueva > $stock) {
+            return back()->with('error', 'No hay suficiente stock. Máximo: ' . $stock);
         }
 
         $item->cantidad = $cantidadNueva;
@@ -137,10 +157,10 @@ class CarritoController extends Controller
         return back()->with('success', 'Cantidad actualizada.');
     }
 
-    public function remove($itemId)
+    public function remove(int $itemId)
     {
-        $item = CarritoItem::findOrFail($itemId);
-        $item->delete();
+        $carrito = $this->getCarritoActivo();
+        $carrito->items()->where('id', $itemId)->delete();
 
         return back()->with('success', 'Producto eliminado del carrito.');
     }
@@ -161,14 +181,22 @@ class CarritoController extends Controller
             return back()->with('error', 'El carrito está vacío.');
         }
 
+        foreach ($carrito->items as $item) {
+            $mueble = $this->muebleRemoto((int) $item->producto_id);
+            if (!$mueble) {
+                return back()->with('error', 'No se pudo validar el mueble: ' . $item->nombre);
+            }
+            $stock = (int) ($mueble['stock'] ?? 0);
+            if ($stock < (int) $item->cantidad) {
+                return back()->with(
+                    'error',
+                    'Stock insuficiente para "' . $item->nombre . '". Disponible: ' . $stock
+                );
+            }
+        }
+
         $carrito->estado = 'completado';
         $carrito->save();
-
-        foreach ($carrito->items as $item) {
-            $producto = $item->producto;
-            $producto->stock -= $item->cantidad;
-            $producto->save();
-        }
 
         return redirect()->route('productos.galeria')->with('success', 'Compra realizada con éxito. ¡Gracias!');
     }

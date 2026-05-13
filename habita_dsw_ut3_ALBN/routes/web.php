@@ -47,7 +47,10 @@ Route::middleware(['auth.api'])->group(function () {
 
     Route::resource('categorias', AdminCategoriaController::class);
     Route::resource('productos', AdminProductoController::class);
+});
 
+// Carrito: sesión API + ability carrito.gestionar (o administrador) — UT4
+Route::middleware(['auth.api', 'cart.ability'])->group(function () {
     Route::get('/carrito', [CarritoController::class, 'index'])->name('carrito.index');
     Route::post('/carrito/add/{producto}', [CarritoController::class, 'add'])->name('carrito.add');
     Route::put('/carrito/update/{item}', [CarritoController::class, 'update'])->name('carrito.update');

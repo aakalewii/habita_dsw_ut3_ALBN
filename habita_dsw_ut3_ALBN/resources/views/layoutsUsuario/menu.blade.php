@@ -31,12 +31,9 @@
                     <a href="{{ route('preferencias.edit') }}" class="btn btn-outline-light btn-sm me-2">
                         <i class="bi bi-gear-fill"></i> Preferencias
                     </a>
-                    <form action="{{ route('carrito.index') }}" method="GET" class="mb-0 me-2">
-                        @csrf
-                        <button type="submit" class="btn btn-outline-light btn-sm">
-                            <i class="bi bi-cart-fill"></i> Ver Carrito
-                        </button>
-                    </form>
+                    <a href="{{ route('carrito.index') }}" class="btn btn-outline-light btn-sm me-2">
+                        <i class="bi bi-cart-fill"></i> Ver Carrito
+                    </a>
                     <form action="{{ route('logout') }}" method="POST" class="mb-0">
                         @csrf
                         <button type="submit" class="btn btn-outline-light btn-sm">

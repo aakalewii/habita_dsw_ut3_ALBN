@@ -6,7 +6,6 @@ use Illuminate\Database\Seeder;
 use App\Models\Carrito;
 use App\Models\CarritoItem;
 use App\Models\User;
-use App\Models\Producto;
 
 class CarritoSeeder extends Seeder
 {
@@ -67,12 +66,9 @@ class CarritoSeeder extends Seeder
     {
         CarritoItem::factory()
             ->count($count)
-            ->state(function (array $attributes) use ($carrito) {
-                return [
-                    'carrito_id' => $carrito->id,
-                    'producto_id' => Producto::inRandomOrder()->first()?->id ?? Producto::factory(),
-                ];
-            })
+            ->state(fn (array $attributes) => [
+                'carrito_id' => $carrito->id,
+            ])
             ->create();
 
         // Recalcular total

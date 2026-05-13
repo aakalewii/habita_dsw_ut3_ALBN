@@ -19,6 +19,30 @@ class AuthController extends Controller
         $this->apiUsuarios = $apiUsuarios;
     }
 
+    /**
+     * @param  mixed  $raw
+     * @return list<string>
+     */
+    private function normalizeAbilities(mixed $raw): array
+    {
+        if (is_string($raw)) {
+            $decoded = json_decode($raw, true);
+            $raw = is_array($decoded) ? $decoded : [];
+        }
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($raw as $v) {
+            if (is_string($v) && $v !== '') {
+                $out[] = $v;
+            }
+        }
+
+        return array_values($out);
+    }
+
     // Login y registro de usuario utilizando la capa intermedia Auth de Laravel.
     /**
      * Formulario de login
@@ -57,7 +81,7 @@ class AuthController extends Controller
             // 2. Guardar el token y los permisos en sesión (Requisito Obligatorio)
             Session::put('api_token', $data['access_token']);
             Session::put('user_rol', $data['rol']);
-            Session::put('user_abilities', $data['abilities']);
+            Session::put('user_abilities', $this->normalizeAbilities($data['abilities'] ?? []));
 
             // 3. Obtener el perfil del usuario usando el nuevo token
             $perfilResponse = $this->apiUsuarios->perfil();
@@ -127,7 +151,7 @@ class AuthController extends Controller
                 
                 Session::put('api_token', $loginData['access_token']);
                 Session::put('user_rol', $loginData['rol']);
-                Session::put('user_abilities', $loginData['abilities']);
+                Session::put('user_abilities', $this->normalizeAbilities($loginData['abilities'] ?? []));
 
                 // Obtener datos del perfil
                 $perfilResponse = $this->apiUsuarios->perfil();

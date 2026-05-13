@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'auth.api' => \App\Http\Middleware\CheckApiSession::class,
+            'cart.ability' => \App\Http\Middleware\EnsureCartAbility::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
